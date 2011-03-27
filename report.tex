@@ -1,0 +1,147 @@
+% This file is based on the "sig-alternate.tex" V1.9 April 2009
+% This file should be compiled with V2.4 of "sig-alternate.cls" April 2009
+
+\documentclass{sig-alternate}
+
+\usepackage{url}
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{balance}
+\permission{}
+\CopyrightYear{2010}
+%\crdata{0-00000-00-0/00/00}
+\begin{document}
+
+\title{Project Report (Rename To Fit Your Project As Needed)}
+\numberofauthors{1}
+\author{
+\alignauthor
+No Such Names
+}
+\date{06 December 2010}
+\maketitle
+\begin{abstract}
+  The abstract should be one or two paragraphs that
+  summarize your paper. Abstracts are read independently
+  from the rest of the paper so you cannot cite your paper
+  or other papers in it. Study other abstracts in the papers
+  you are reading to understand what an abstract should
+  really means. Write the abstract in third person.
+\end{abstract}
+
+\section{Overview}
+\label{overview}
+
+Use this section to present an overview of the project.
+
+Provide a roadmap for the remaining sections of the
+paper. For example, you can state that Section \ref{design
+  considerations} presents a discussion of the design issues
+you considered, and and section \ref{implementation}
+discusses how you went about implementing your project.
+
+{\bf Note: This specific file is a generic template so the
+  section titles may not fit your specific needs so feel
+  free to change them as needed.}
+
+\section{Design Considerations}
+\label{design considerations}
+
+Use this section to describe the basic design of your project.
+
+\section{Implementation}
+\label{implementation}
+
+Use this section to describe the implementation of your
+project.
+
+\section{Mistakes Made and Corrected}
+\label{mistakes}
+
+Use this section to describe issues that the papers deal
+with that are neither common nor disagreements.
+
+\section{Current Status and Future Work}
+\label{current status}
+
+Use this section to describe the current status of your work
+and what else needs to be done.
+
+The next subsection is meant to provide you with some help
+in dealing with figures, tables and citations.
+
+\subsection*{Tables, Figures, and Citations/References}
+
+Tables, figures, and citations/references in technical
+documents need to be presented correctly. As many students
+are not familiar with using these objects, here is a quick
+guide extracted from the ACM style guide.
+
+\begin{table}
+\centering
+\caption{Feelings about Issues}
+\begin{tabular}{|l|r|l|} \hline
+Flavor&Percentage&Comments\\ \hline
+Issue 1 &  10\% & Loved it a lot\\ \hline
+Issue 2 &  20\% & Disliked it immensely\\ \hline
+Issue 3 &  30\% & Didn't care one bit\\ \hline
+Issue 4 &  40\% & Duh?\\ \hline
+\end{tabular}
+\end{table}
+
+
+First, note that figures in the term paper must be original,
+that is, created by the student: please do not cut-and-paste
+figures from any other paper you have read. Second, if you
+do need to include figures, they should be handled as
+demonstrated here. State that Figure \ref{sample graphic} is
+a simple illustration used in the ACM Style sample
+document. Figures are never below or above the
+text. Incidentally, in proper technical writing (for reasons
+beyond the scope of this discussion), table captions are
+above the table and figure captions are below the figure.
+
+\begin{figure}[htb]
+\label{sample graphic}
+\begin{center}
+\includegraphics[width=2in]{fly.jpg}
+\caption{A sample black \& white graphic (JPG).}
+\end{center}
+\end{figure}
+
+Finally, citing documents needs to be done properly too. For
+example, a paper by Mic Bowman, Saumya K. Debray, and Larry
+L. Peterson could be cited as Bowman, Debray, and Peterson
+\cite{bowman:reasoning}. A set of papers could collectively
+be cited as the literature in this area consists of several
+interesting papers
+\cite{braams:babel,clark:pct,herlihy:methodology}.
+
+The list of all references will be generated in ACMRef
+standard style using the \LaTeX{}/BibTeX. Note that you
+need to first the following sequence to get the paper
+compiled correctly:
+
+\begin{enumerate}
+\item {\tt latex} {\em termpaper}
+\item {\tt bibtex} {\em termpaper}
+\item {\tt latex} {\em termpaper}
+\item {\tt latex} {\em termpaper}
+\end{enumerate}
+
+\bibliographystyle{abbrv}
+\bibliography{report}
+% You must have a proper ".bib" file
+%  and remember to run:
+% latex bibtex latex latex
+% to resolve all references
+\balance
+\end{document}
+
+
+
+
+
+
+
+
