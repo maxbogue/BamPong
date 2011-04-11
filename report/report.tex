@@ -1,0 +1,149 @@
+% This file is based on the "sig-alternate.tex" V1.9 April 2009
+% This file should be compiled with V2.4 of "sig-alternate.cls" April 2009
+
+\documentclass{sig-alternate}
+
+\usepackage{url}
+\usepackage{color}
+\usepackage{enumerate}
+\usepackage{balance}
+\permission{}
+\CopyrightYear{2010}
+%\crdata{0-00000-00-0/00/00}
+\begin{document}
+
+\title{Peer-to-Peer Pong}
+\numberofauthors{3}
+\author{
+\alignauthor
+Max Bogue
+\alignauthor
+Brian Gernhardt
+\alignauthor
+Aniket Sharma
+}
+\date{06 December 2010}
+\maketitle
+% \begin{abstract}
+% \end{abstract}
+
+\section{Overview}
+\label{overview}
+
+% Provide a roadmap for the remaining sections of the
+% paper. For example, you can state that Section \ref{design
+%   considerations} presents a discussion of the design issues
+% you considered, and and section \ref{implementation}
+% discusses how you went about implementing your project.
+
+To explore distributed systems, we plan on implementing a distributed game.
+In order to explore the problems behind the concept instead of spending
+time implementing a complicated game, we intend to create a version of a
+very simple and classic video game, Pong.  The objective of Pong is simple:
+to keep a ball from falling off your side of the playing field.
+
+To expand the game for a distributed setting, we alter the rules slightly.
+Each player sees a portion of the total field.  The edges of their section
+connect to other player's screen.  If the ball falls off the bottom of your
+screen, it counts as a point against you.  The goal becomes having the
+lowest score in the game.  To keep the game interesting with a large number
+of players, we plan on having multiple balls boucing around and to display
+an overview of the entire game when there are no balls near your goal.
+
+In this document we will describe the design of the system, our
+implementation plan, and the problems we expect to need to solve.  As our
+project continues, we will update this report with more detailed
+information and references to the sources used to overcome the problems
+described at the end of this document.
+
+\section{Design Considerations}
+\label{design considerations}
+
+% Use this section to describe the basic design of your project.
+
+The project involves setting up a centralized server,which acts as a
+reliable entity for initial game setup.  The server maintains the scores
+and handles scenarios where players leave the game.  The server has the
+authority of adding players to the game before the game starts and also
+makes sure that the game functions within its rules.  It also has the
+responsibility of keeping scores while the game is in progress.  The game
+will also include additional features such as adding multiple balls in the
+game and giving players the benefits of powerups and other real time
+add-ons,thus making it scalable.  
+
+The players co-ordinate with each other by sending constant messages about
+the ball and the paddle position to rest of the players as well as the
+server.  Thus,in case of a failure on any of the player devices the server
+can make the necessary changes with the information it has,thereby ensuring
+availability of the game to the rest of the players.  The actual transfer
+of the messages between two players is peer to peer,thereby increasing the
+speed and efficiency of the game.  The player who is about to receive the
+ball will receive a message from the player where the ball came from
+containing information about the location of the ball on the screen,the
+angle and speed with which it is travelling ensuring uniform game
+experience to the rest of the players
+
+
+\section{Implementation}
+\label{implementation}
+
+% Use this section to describe the implementation of your
+% project.
+
+Our client code will be Java-based, to allow easy portability to the
+Android and Blackberry platforms, as well as a desktop version.  The server
+may also be written in Java, but that is less definite as that doesn't
+require the same ease of re-use.  The client interface will have to utilize
+the various input methods for each platform.  Android users will be able to
+touch the screen directly, BlackBerry users will use the trackball, and the
+desktop user will have their usual input options.  We're hoping that the
+design of the gameplay is simple enough that the user experience will be
+relatively uniform across platforms.
+
+
+\section{Areas of Work}
+\label{areas of work}
+
+% Description of the problems to solve
+
+There will be a number of interesting problems to overcome in the
+development of this game.  Game field setup will be interesting; that is,
+how it is decided which players are adjacent to which others.  This bears
+some small resemblance to the Byzantine Generals Problem, if we decide to
+try to do it peer-to-peer.  Related is what should happen if a player drops
+from the game; should the field be rearranged to exclude them?  That seems
+like the most elegant solution.  A fault-tolerant server setup will also be
+a challenge; hopefully one that this class will teach us how to solve.
+Finally, a way of tracking and guaranteeing the ball's position against
+cheating will also play a crucial roll.
+
+
+% \section{Mistakes Made and Corrected}
+% \label{mistakes}
+
+% Use this section to describe issues that the papers deal
+% with that are neither common nor disagreements.
+
+% \section{Current Status and Future Work}
+% \label{current status}
+
+% Use this section to describe the current status of your work
+% and what else needs to be done.
+
+
+% \bibliographystyle{abbrv}
+% \bibliography{report}
+% You must have a proper ".bib" file
+%  and remember to run:
+% latex bibtex latex latex
+% to resolve all references
+\balance
+\end{document}
+
+
+
+
+
+
+
+
