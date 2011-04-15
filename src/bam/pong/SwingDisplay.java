@@ -12,7 +12,7 @@ import javax.swing.SwingUtilities;
  * @author Brian
  */
 public class SwingDisplay extends JComponent {
-	/** For serialization (via JPanel) */
+	/** For serialization (via JComponent) */
 	private static final long serialVersionUID = -1198765485813951172L;
 
 	// Ball position
