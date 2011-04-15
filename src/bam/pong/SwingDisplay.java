@@ -3,7 +3,8 @@ package bam.pong;
 import java.awt.Graphics;
 import java.util.HashSet;
 import java.util.Set;
-
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -37,8 +38,11 @@ public class SwingDisplay extends JComponent {
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D) g;
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, // Anti-alias!
+		        RenderingHints.VALUE_ANTIALIAS_ON);
 		for( Ball b : balls ) {
-			g.fillOval(b.x, b.y, 20, 20);
+			g2.fillOval(b.x, b.y, 20, 20);
 		}
 	}
 

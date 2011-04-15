@@ -3,6 +3,11 @@ package bam.pong;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Handles the ball movement physics.
+ * 
+ * @author Max
+ */
 public class GameEngine implements Runnable {
 	
 	private final int UPDATES_PER_SEC = 60;
