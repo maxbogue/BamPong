@@ -1,6 +1,8 @@
 package bam.pong;
 
 import java.awt.Graphics;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -15,21 +17,29 @@ public class SwingDisplay extends JComponent {
 	/** For serialization (via JComponent) */
 	private static final long serialVersionUID = -1198765485813951172L;
 
-	// Ball position
-	private int x;
-	private int y;
-	
-	public void setBall(int x, int y) {
-		this.x = x;
-		this.y = y;
+	private Set<Ball> balls;
+
+	public SwingDisplay() {
+		balls = new HashSet<Ball>();
+	}
+
+	public void addBall(Ball b) {
+		balls.add(b);
 		repaint();
 	}
-	
+
+	public void removeBall(Ball b) {
+		balls.remove(b);
+		repaint();
+	}
+
 	/** Draw the ball */
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.fillOval(x, y, 20, 20);
+		for( Ball b : balls ) {
+			g.fillOval(b.x, b.y, 20, 20);
+		}
 	}
 
 	/**
@@ -39,6 +49,7 @@ public class SwingDisplay extends JComponent {
 	 */
 	public static void main(String[] args) {
 		final SwingDisplay disp = new SwingDisplay();
+
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -49,19 +60,22 @@ public class SwingDisplay extends JComponent {
 				f.setVisible(true);
 			}
 		});
-		
+
 		Thread animator = new Thread() {
 			@Override
 			public void run() {
-				int x = 0;
-				int v = 3;
+				Ball bs[] = {new Ball(50, 25, 3, 0), new Ball(50, 75, -3, 0)};
+				for( Ball b : bs )
+					disp.addBall(b);
 				for(;;) {
-					disp.setBall(x, 50);
+					for( Ball b : bs ) {
+						b.x += b.dx;
+						if( b.x <= 0 || b.x >= 100 )
+							b.dx *= -1;
+					}
 
-					x += v;
-					if( x <= 0 || x >= 100 )
-						v *= -1;
-
+					disp.repaint();
+					
 					try {
 						Thread.sleep(1000/30);
 					} catch (InterruptedException e) {
@@ -70,7 +84,7 @@ public class SwingDisplay extends JComponent {
 				}
 			}
 		};
-		
+
 		animator.start();
 	}
 
