@@ -1,5 +1,11 @@
 package bam.pong;
 
+/**
+ * Represents a ball.
+ * 
+ * @author Max
+ * @author Brian
+ */
 public class Ball {
 	int x, y;
 	int dx, dy;
