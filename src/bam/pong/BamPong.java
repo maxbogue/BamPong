@@ -13,6 +13,8 @@ import javax.swing.JFrame;
  */
 public class BamPong extends JFrame {
 
+	private static final long serialVersionUID = -7382341800985464596L;
+
 	private static final int BALL_SIZE = 20;
 	
 	private GameField field;
@@ -52,7 +54,8 @@ public class BamPong extends JFrame {
 		
 		Ball bs[] = {
 				new Ball(50, 25, 3, 4),
-				new Ball(50, 75, -3, 0)
+				new Ball(50, 75, -3, 0),
+				new Ball(25, 25, 5, -2),
 			};
 		for( Ball b : bs )
 			e.addBall(b);
