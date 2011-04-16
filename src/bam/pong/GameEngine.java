@@ -10,6 +10,7 @@ import java.util.Set;
  */
 public class GameEngine implements Runnable {
 	
+	/** Number of times the game updates per second. */
 	private final int UPDATES_PER_SEC = 30;
 	
 	/** Stops the engine thread. */
@@ -32,6 +33,7 @@ public class GameEngine implements Runnable {
 		this.height = height;
 	}
 	
+	/** Starts the game engine. */
 	public void start() {
 		ballMover.start();
 	}
@@ -40,16 +42,18 @@ public class GameEngine implements Runnable {
 		// Do stuff here!
 	}
 	
+	/** Updates the position of each ball and triggers a view update. */
 	private void updateBallPositions() {
 		for (Ball b : balls) {
-			b.x += b.dx;
-			b.y += b.dy;
+			b.x += b.dx / UPDATES_PER_SEC;
+			b.y += b.dy / UPDATES_PER_SEC;
 			if (b.x <= 0 || b.x >= width) b.dx *= -1;
 			if (b.y <= 0 || b.y >= height) b.dy *= -1;
 		}
 		update.trigger();
 	}
 	
+	/** Runs the ball mover thread. */
 	@Override
 	public void run() {
 		while (runThread) {
@@ -62,14 +66,17 @@ public class GameEngine implements Runnable {
 		}
 	}
 
+	/** Adds a ball to the game. */
 	public void addBall(Ball b) {
 		balls.add(b);
 	}
 	
+	/** Removes a ball from the game. */
 	public boolean removeBall(Ball b) {
 		return balls.remove(b);
 	}
-	
+
+	/** Returns the set of balls currently in the aame. */
 	public Set<Ball> getBalls() {
 		return balls;
 	}

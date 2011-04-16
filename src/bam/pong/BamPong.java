@@ -6,19 +6,22 @@ import java.awt.Dimension;
 import javax.swing.JFrame;
 
 /**
- * The main frame.
+ * The main window of BamPong.
  * 
- * @author Max
- *
+ * @author Max Bogue
  */
 public class BamPong extends JFrame {
 
+	/** Used for serialization. */
 	private static final long serialVersionUID = -7382341800985464596L;
 
-	private static final int BALL_SIZE = 20;
+	/** Diameter of the balls in pixels. */
+	public static final int BALL_SIZE = 20;
 	
+	/** The game field component. */
 	private GameField field;
 	
+	/** Constructs the main BamPong window. */
 	public BamPong(GameField field) {
 
 		this.field = field;
@@ -44,6 +47,7 @@ public class BamPong extends JFrame {
 		int w = 300;
 		int h = 200;
 		
+		// Ball size must be subtracted here so the balls look like they hit the wall.
 		GameEngine e = new GameEngine(w - BALL_SIZE, h - BALL_SIZE);
 		GameField f = new GameField(e);
 		f.setPreferredSize(new Dimension(w, h));
@@ -51,14 +55,12 @@ public class BamPong extends JFrame {
 		
 		BamPong bam = new BamPong(f);
 		
-		
 		Ball bs[] = {
-				new Ball(50, 25, 3, 4),
-				new Ball(50, 75, -3, 0),
-				new Ball(25, 25, 5, -2),
+				new Ball(50, 25, 200, 40),
+				new Ball(50, 75, -367, 100),
+				new Ball(25, 25, 283, -200),
 			};
-		for( Ball b : bs )
-			e.addBall(b);
+		for( Ball b : bs ) e.addBall(b);
 		e.start();
 	}
 	

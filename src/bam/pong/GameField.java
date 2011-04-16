@@ -6,7 +6,7 @@ import java.awt.RenderingHints;
 import javax.swing.JComponent;
 
 /**
- * Displays a ball on a field via Swing
+ * Represents the game field using Swing.
  * 
  * @author Brian
  * @author Max
@@ -16,15 +16,15 @@ public class GameField extends JComponent implements EventListener {
 	/** For serialization (via JComponent) */
 	private static final long serialVersionUID = -1198765485813951172L;
 	
-	private static final int BALL_SIZE = 20;
-	
+	/** The engine object.  Only currently needed for access to the ball locations. */
 	private GameEngine engine;
 
+	/** Constructor. It constructs. */
 	public GameField(GameEngine engine) {
 		this.engine = engine;
 	}
 
-	/** Draw the ball */
+	/** Draw the ball. */
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -32,7 +32,7 @@ public class GameField extends JComponent implements EventListener {
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, // Anti-alias!
 		        RenderingHints.VALUE_ANTIALIAS_ON);
 		for ( Ball b : engine.getBalls() ) {
-			g2.fillOval(b.x, b.y, BALL_SIZE, BALL_SIZE);
+			g2.fillOval((int)b.x, (int)b.y, BamPong.BALL_SIZE, BamPong.BALL_SIZE);
 		}
 	}
 
