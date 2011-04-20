@@ -12,10 +12,10 @@ import javax.swing.JComponent;
  * @author Max
  */
 public class GameField extends JComponent implements EventListener {
-	
+
 	/** For serialization (via JComponent) */
 	private static final long serialVersionUID = -1198765485813951172L;
-	
+
 	/** The engine object.  Only currently needed for access to the ball locations. */
 	private GameEngine engine;
 

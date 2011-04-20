@@ -16,7 +16,7 @@ public class BamPong extends JFrame {
 	private static final long serialVersionUID = -7382341800985464596L;
 
 	/** Diameter of the balls in pixels. */
-	public static final int BALL_SIZE = 20;
+	public static final int BALL_SIZE = 15;
 	
 	/** The game field component. */
 	private GameField field;
@@ -59,6 +59,8 @@ public class BamPong extends JFrame {
 				new Ball(50, 25, 200, 40),
 				new Ball(50, 75, -367, 100),
 				new Ball(25, 25, 283, -200),
+				new Ball(25, 25, 193, -20),
+				new Ball(25, 25, 90, -40),
 			};
 		for( Ball b : bs ) e.addBall(b);
 		e.start();
