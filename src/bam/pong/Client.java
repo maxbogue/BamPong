@@ -3,9 +3,14 @@ package bam.pong;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,24 +18,65 @@ import java.util.concurrent.ConcurrentHashMap;
  * Handles all client-server and client-client communications.
  */
 public class Client {
+	// Server information
 	public static final String SERVER_ADDRESS = "127.0.0.1";
 	public static final int    SERVER_PORT    = 1234;
+
+	// Server message types
+	public static final byte NEW_CLIENT = 1;
 	
 	// Use NIO channels to avoid having a thread per socket.
-	private ServerSocketChannel incoming;
-	private SocketChannel server;
-	private Map<SocketChannel, Client> peers; // We're using a concurrent map as a set.
-	private Thread listener;
-	private Selector selector;
+	private ServerSocketChannel incoming;         // other clients connect here
+	private SocketChannel server;                 // our connection to the server
+	private Map<InetAddress,SocketChannel> peers; // connections to other clients
+
+	private Thread listener;   // thread dealing with incoming data
+	private Selector selector; // selector to wait on for data
+	private Charset encoding;  // for string encoding
 	
 	private class Listener implements Runnable {
 		@Override
 		public void run() {
 			// loop while any socket is open
-			// wait on selector
-			// If peer socket, processPeerMessage
-			// If server socket, processServerMessage
-			// If incoming socket, add incoming connection as peer
+			while( incoming.isOpen() || server.isOpen() || !peers.isEmpty() ) {
+				try {
+					// wait on selector
+					selector.select(1000);
+					
+					// Handle all ready channels
+					for(SelectionKey k : selector.selectedKeys()) {
+						Channel c = k.channel();
+						
+						if( peers.containsKey(c) ) {
+							processPeerMessage((SocketChannel) c);
+						} else if( c == server ) {
+							processServerMessage();
+						} else if( c == incoming ) {
+							acceptNewPeer();
+						} else {
+							System.err.println( "Tried to process unknown socket." );
+						}
+					}
+					
+					// Check for closed peers
+					for(SocketChannel peer : peers.values()) {
+						if(!peer.isOpen()) {
+							peers.remove(peer);
+						}
+					}
+				} catch (IOException e) {
+					// TODO Handle this better.  In mean time, just keep going.
+					System.err.println(e);
+					e.printStackTrace();
+				}
+			}
+			try {
+				selector.close();
+			} catch (IOException e) {
+				// Not much to do.
+				System.err.println(e);
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -41,7 +87,8 @@ public class Client {
 	 * @throws IOException for any socket problems
 	 */
 	Client() throws IOException {
-		peers = new ConcurrentHashMap<SocketChannel, Client>();
+		peers = new ConcurrentHashMap<InetAddress, SocketChannel>();
+		encoding = Charset.forName("UTF-8");
 
 		// create incoming socket
 		incoming = ServerSocketChannel.open();
@@ -50,43 +97,78 @@ public class Client {
 		// connect to server
 		server = SocketChannel.open(new InetSocketAddress(
 				InetAddress.getByName(SERVER_ADDRESS), SERVER_PORT));
+		// TODO: Send incoming port to server
 		
 		// create selector for thread
 		selector = Selector.open();
 		// register sockets
-		incoming.register(selector, incoming.validOps());
-		server.  register(selector, server  .validOps());
+		incoming.register(selector, SelectionKey.OP_READ );
+		server.  register(selector, SelectionKey.OP_READ );
 		
 		// Start listener thread
 		listener = new Thread(new Listener());
 		listener.run();
 	}
 	
-	void connectToClient(/* IP, port */) {
+	private void connectToClient(InetSocketAddress address) throws IOException {		
+		// Check for existing connection.
+		InetAddress host = address.getAddress();
+		if(peers.containsKey(host) && peers.get(host).isOpen())
+				return;  // Skip a peer we already have a connection to.
+		
 		// create socket, add to peers
-		// setup callback to processPeerMessage
+		SocketChannel peer = SocketChannel.open(address);
+		peers.put(address.getAddress(), peer);
+		peer.register(selector, SelectionKey.OP_READ );		
+	}
+	
+	private void acceptNewPeer() throws IOException {
+		SocketChannel peer = incoming.accept();
+		peers.put(peer.socket().getInetAddress(), peer);
+		peer.register(selector, SelectionKey.OP_READ );
 	}
 	
 	// Called whenever we get a message from the server
-	void processServerMessage() {
-		// If new client, connect to it
-		// If client drop, disconnect from it
+	private void processServerMessage() throws IOException {
+		ByteBuffer msg_buffer = ByteBuffer.allocate(100);
+		server.read(msg_buffer);
+		byte message[] = msg_buffer.array();
+		
+		switch(message[0]) {
+		case NEW_CLIENT:
+			// Message format { NEW_CLIENT, ip1, ip2, ip3, ip4, port_high, port_low }
+			byte address[] = Arrays.copyOfRange(message, 1, 5);
+			int port = message[5] * 256 + message[6];
+			InetSocketAddress peer = new InetSocketAddress(
+					InetAddress.getByAddress(address), port);
+			connectToClient(peer);
+			break;
+		default:
+			System.err.println("Unknown server message type: " + message[0]);
+		}
 	}
 	
 	// Called whenever we get a message from a peer
-	void processPeerMessage() {
+	private void processPeerMessage(SocketChannel peer) throws IOException {
 		// Print message
+		ByteBuffer message = ByteBuffer.allocate(100);
+		peer.read(message);
+		System.out.println(encoding.decode(message));
 	}
 	
-	void sendMessageToClients(String message) {
-		// Send message to all clients
+	void sendMessageToClients(String message) throws IOException {
+		ByteBuffer encoded = encoding.encode(message);
+		for(SocketChannel c : peers.values() )
+			c.write(encoded);
 	}
 
 	public static void main(String args[]) {
 		try {
 			Client c = new Client();
+			Thread.sleep(500);
 			c.sendMessageToClients("Hello World!");
-		} catch (IOException e) {
+			Thread.sleep(10000);
+		} catch (Exception e) {
 			System.err.println(e);
 			e.printStackTrace();
 		}
