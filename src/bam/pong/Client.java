@@ -24,6 +24,7 @@ public class Client {
 
 	// Server message types
 	public static final byte NEW_CLIENT = 1;
+	public static final byte REGISTER_PORT = 2;
 	
 	// Use NIO channels to avoid having a thread per socket.
 	private ServerSocketChannel incoming;         // other clients connect here
@@ -97,7 +98,12 @@ public class Client {
 		// connect to server
 		server = SocketChannel.open(new InetSocketAddress(
 				InetAddress.getByName(SERVER_ADDRESS), SERVER_PORT));
-		// TODO: Send incoming port to server
+		
+		// Sent port information to server
+		int port = incoming.socket().getLocalPort();
+		byte port_hi = (byte) (port / 256);
+		byte port_lo = (byte) (port % 256);
+		server.write(ByteBuffer.wrap(new byte[] {REGISTER_PORT, port_hi, port_lo} ));
 		
 		// create selector for thread
 		selector = Selector.open();
