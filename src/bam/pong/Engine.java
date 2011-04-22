@@ -2,6 +2,8 @@ package bam.pong;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -9,7 +11,7 @@ import java.util.Set;
  * 
  * @author Max
  */
-public class GameEngine implements Runnable {
+public class Engine implements Runnable {
 	
 	/** Number of times the game updates per second. */
 	private final int UPDATES_PER_SEC = 30;
@@ -26,17 +28,12 @@ public class GameEngine implements Runnable {
 	private int width;
 	private int height;
 	
-	public final Event update = new Event();
+	private List<EngineListener> listeners = new LinkedList<EngineListener>();
 	
-	private Client client;
-	
-	public GameEngine(int width, int height) {
+	public Engine(int width, int height) {
 		ballMover = new Thread(this);
 		this.width = width;
 		this.height = height;
-		try {
-			client = new Client();
-		} catch (IOException e) {}
 	}
 	
 	/** Starts the game engine. */
@@ -44,7 +41,7 @@ public class GameEngine implements Runnable {
 		ballMover.start();
 	}
 	
-	public void updatePaddleLoc() {
+	public void setPaddle() {
 		// Do stuff here!
 	}
 	
@@ -54,17 +51,21 @@ public class GameEngine implements Runnable {
 			b.x += b.dx / UPDATES_PER_SEC;
 			b.y += b.dy / UPDATES_PER_SEC;
 			if (b.x <= 0 || b.x >= width) b.dx *= -1;
-			if (b.y <= 0) b.dy *= -1;
+			if (b.y <= 0) {
+				b.dy *= -1;
+				for (EngineListener el : listeners) el.ballDropped(b);
+				balls.remove(b);
+			}
 			if (b.y >= height) {
 				b.dy *= -1;
-				client.sendBall(b);
+				for (EngineListener el : listeners) el.sendBall(b);
 				balls.remove(b);
 			}
 		}
-		update.trigger();
+		for (EngineListener el : listeners) el.ballsUpdated(balls);
 	}
 	
-	/** Runs the ball mover thread. */
+	/** Run method for the ball mover thread. */
 	@Override
 	public void run() {
 		while (runThread) {
@@ -76,20 +77,18 @@ public class GameEngine implements Runnable {
 			}
 		}
 	}
-
+	
+	public void addListener(EngineListener el) {
+		listeners.add(el);
+	}
+	
+	public boolean removeListener(EngineListener el) {
+		return listeners.remove(el);
+	}
+	
 	/** Adds a ball to the game. */
 	public void addBall(Ball b) {
 		balls.add(b);
-	}
-	
-	/** Removes a ball from the game. */
-	public boolean removeBall(Ball b) {
-		return balls.remove(b);
-	}
-
-	/** Returns the set of balls currently in the aame. */
-	public Set<Ball> getBalls() {
-		return balls;
 	}
 	
 }
