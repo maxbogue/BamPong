@@ -22,10 +22,17 @@ Brian Gernhardt
 \alignauthor
 Aniket Sharma
 }
-\date{06 December 2010}
+\date{07 April 2011}
 \maketitle
-% \begin{abstract}
-% \end{abstract}
+
+\begin{abstract}
+	These days, even simple games are expected to have a multi-player
+	version.  But once any program needs to deal with multiple machines,
+	it must deal with the issues inherent in distributing programming.  To
+	explore how these issues must be dealt with in even a simple game, we
+	will implement a variant of Pong as a multiplayer game on multiple
+	mobile devices.
+\end{abstract}
 
 \section{Overview}
 \label{overview}
@@ -47,21 +54,22 @@ Each player sees a portion of the total field.  The edges of their section
 connect to other player's screen.  If the ball falls off the bottom of your
 screen, it counts as a point against you.  The goal becomes having the
 lowest score in the game.  To keep the game interesting with a large number
-of players, we plan on having multiple balls boucing around and to display
+of players, we plan on having multiple balls bouncing around and to display
 an overview of the entire game when there are no balls near your goal.
 
-In this document we will describe the design of the system, our
-implementation plan, and the problems we expect to need to solve.  As our
-project continues, we will update this report with more detailed
-information and references to the sources used to overcome the problems
-described at the end of this document.
+Section \ref{design considerations} discusses in more detail the design of
+the game and systems involved.  Section \ref{implementation} discusses the
+platforms and systems we intend to use.  Section \ref{areas of work}
+contains the problems we expect to find and our plans to deal with them.
+Finally, section \ref{current status} details the current status of the
+project.
 
 \section{Design Considerations}
 \label{design considerations}
 
 % Use this section to describe the basic design of your project.
 
-The project involves setting up a centralized server,which acts as a
+The project involves setting up a centralized server, which acts as a
 reliable entity for initial game setup.  The server maintains the scores
 and handles scenarios where players leave the game.  The server has the
 authority of adding players to the game before the game starts and also
@@ -69,20 +77,19 @@ makes sure that the game functions within its rules.  It also has the
 responsibility of keeping scores while the game is in progress.  The game
 will also include additional features such as adding multiple balls in the
 game and giving players the benefits of powerups and other real time
-add-ons,thus making it scalable.  
+add-ons, thus making it scalable.  
 
 The players co-ordinate with each other by sending constant messages about
 the ball and the paddle position to rest of the players as well as the
-server.  Thus,in case of a failure on any of the player devices the server
-can make the necessary changes with the information it has,thereby ensuring
-availability of the game to the rest of the players.  The actual transfer
-of the messages between two players is peer to peer,thereby increasing the
-speed and efficiency of the game.  The player who is about to receive the
-ball will receive a message from the player where the ball came from
-containing information about the location of the ball on the screen,the
-angle and speed with which it is travelling ensuring uniform game
-experience to the rest of the players
-
+server.  Thus, in case of a failure on any of the player devices the server
+can make the necessary changes with the information it has, thereby
+ensuring availability of the game to the rest of the players.  The actual
+transfer of the messages between two players is peer to peer, thereby
+increasing the speed and efficiency of the game.  The player who is about
+to receive the ball will receive a message from the player where the ball
+came from containing information about the location of the ball on the
+screen, the angle and speed with which it is travelling ensuring uniform
+game experience to the rest of the players
 
 \section{Implementation}
 \label{implementation}
@@ -100,23 +107,71 @@ desktop user will have their usual input options.  We're hoping that the
 design of the gameplay is simple enough that the user experience will be
 relatively uniform across platforms.
 
-
 \section{Areas of Work}
 \label{areas of work}
 
 % Description of the problems to solve
 
-There will be a number of interesting problems to overcome in the
-development of this game.  Game field setup will be interesting; that is,
-how it is decided which players are adjacent to which others.  This bears
-some small resemblance to the Byzantine Generals Problem, if we decide to
-try to do it peer-to-peer.  Related is what should happen if a player drops
-from the game; should the field be rearranged to exclude them?  That seems
-like the most elegant solution.  A fault-tolerant server setup will also be
-a challenge; hopefully one that this class will teach us how to solve.
-Finally, a way of tracking and guaranteeing the ball's position against
-cheating will also play a crucial roll.
+\subsection{Game Setup}
 
+The Game server handles an important issue of naming and service discovery.
+The centralized server ensures  that it is handling both the clients as
+well as the backup servers at once. The game is setup by adding players and
+the server ensures  that the game is played within the rules and is
+available all the time. Along with maintaining the client list the server
+also maintains the list of backup servers, always keeping them up to date
+about the game situation in case the centralized server fails, this not
+only handles availability of the game but also ensures consistency as far
+as the game is concerned. The server has the authority of adding multiple
+balls and also power ups, thus making the game scalable in its own way. The
+issues that we handle as far as the project goes range from availability to
+reliability by the use of an interesting algorithm.
+
+\subsection{Coordinating Ball Position}
+
+The players co-ordinate with each other by sending constant messages about
+the ball and the paddle position to rest of the players as well as the
+server. As the player interaction is peer to peer in order to increase
+speed and efficiency, the issue about consensus regarding the ball
+position, player drop outs and server failure becomes the most important
+aspect of the game. We are going to use Paxos\cite{lamport:paxos} for
+solving this issue. The leader in this case is the player who currently has
+the ball. Thus the use of Paxos not only ensures fairness in the game, but
+is highly useful in cases of failures on client or server devices. The
+co-ordination between the players as well as between players and the server
+makes our architecture explore the benefits of both peer to peer as well as
+centralized architecture scheme. The involvement of backup servers ensures
+that there is no single point of failure as far as communication is
+concerned. Reliability is ensured by Paxos, thus making the gaming
+experience fair and real time.
+
+\subsection{Connection Failures}
+
+If a player drops from the game, this will be detected by each player
+individually by a lack of response from game coordination messages. The
+remaining players will then use Paxos to come to a consensus on whether or
+not the player has lost their connection and should be dropped from the
+game.  Server failure will also be detected by a lack of response, and
+consensus will again be reached using Paxos.  Since at this point in the
+design the game requires the server to play, it cannot just be dropped.
+Therefore, a list of fallback servers will be given to all players upon
+joining the game, and if a server is deemed failed, all clients will switch
+to the next backup server on the list.  These fallback servers will likely
+need to keep an up-to-date mirror of the state for each game, in order to
+gracefully pick them up.  Additionally, we might have the clients switch to
+a fallback server immediately at the start of the game if the server
+detects that it is under heavy load.
+
+\subsection{Scalability}
+
+We plan on allowing the games to gracefully scale up to some undetermined
+maximum.  We will need to be able to modify the game field in real time if
+a player drops, so there is potential for a player to be able to join
+mid-game as well.   Scaling of the system overall will be accomplished
+through the concurrent use of multiple server machines, as well as trying
+to keep the server-side portion of the game as minimal as possible.
+Keeping the communication between the clients will inherently make scaling
+to more players easier.
 
 % \section{Mistakes Made and Corrected}
 % \label{mistakes}
@@ -124,26 +179,58 @@ cheating will also play a crucial roll.
 % Use this section to describe issues that the papers deal
 % with that are neither common nor disagreements.
 
-% \section{Current Status and Future Work}
-% \label{current status}
+\section{Current Status and Future Work}
+\label{current status}
 
 % Use this section to describe the current status of your work
 % and what else needs to be done.
 
+\begin{figure}[htb]
+	\label{code design}
+	\begin{center}
+		\includegraphics[width=3.25in]{UML.pdf}
+		\caption{Code Design}
+	\end{center}
+\end{figure}
 
-% \bibliographystyle{abbrv}
-% \bibliography{report}
+We are currently finalizing the design of the system and preparing
+development environments for both Blackberry and Android.  Figure \ref{code
+design} depicts the high level structure of the code.  It is split into
+four sections each encapsulating a portion of the system: User Interface,
+Game Model, Server Communication and Client Communication.  This is
+motivated in not only the general concept of isolation, but also to aid
+portability.  The User Interface code will likely need to be very different
+on each platform and, at least on Blackberry, the networking code as well.
+
+The user interface is responsible for all interaction to the user,
+including connecting to games, input to move the paddle and displaying the
+ball's position with updates from the game engine.  The game engine
+enforces all the rules of the game and models the limited ``physics'' of
+the ball motion and bounces.  The two communications section handles all
+issues with communicating with other systems, turning complex consensus
+algorithms into simple updates of state.
+
+The code interaction will be event driven, with the four sections each
+either running in separate threads or being run as needed in response to
+external events.  This is because each section needs to run in response to
+different things and often with timing deadlines.  The user interface needs
+to react to user input and update interactively, the game model needs to
+update regularly and the communications portions need to respond to
+external messages without causing timeouts.
+
+We are still considering various protocols and architectures.  Due to the
+need for regular updates, our current design uses TCP connections to
+maintain communication between the various systems.  There are several
+papers relating to architecture and peer-to-peer networks for distributed
+games,\cite{gamepapers} but many solutions we have examined are for a more
+complex system or requires more time to implement than available for this
+project.
+
+\bibliographystyle{abbrv}
+\bibliography{report}
 % You must have a proper ".bib" file
 %  and remember to run:
 % latex bibtex latex latex
 % to resolve all references
 \balance
 \end{document}
-
-
-
-
-
-
-
-
