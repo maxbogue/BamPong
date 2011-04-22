@@ -167,7 +167,12 @@ public class Client {
 		for(SocketChannel c : peers.values() )
 			c.write(encoded);
 	}
-
+	
+	// Send ball to the appropriate client.
+	void sendBall(Ball b) {
+		// Calculate the peer to send the ball to using b.x and send it.
+	}
+	
 	public static void main(String args[]) {
 		try {
 			Client c = new Client();

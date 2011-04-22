@@ -1,5 +1,6 @@
 package bam.pong;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,10 +28,15 @@ public class GameEngine implements Runnable {
 	
 	public final Event update = new Event();
 	
+	private Client client;
+	
 	public GameEngine(int width, int height) {
 		ballMover = new Thread(this);
 		this.width = width;
 		this.height = height;
+		try {
+			client = new Client();
+		} catch (IOException e) {}
 	}
 	
 	/** Starts the game engine. */
@@ -48,7 +54,12 @@ public class GameEngine implements Runnable {
 			b.x += b.dx / UPDATES_PER_SEC;
 			b.y += b.dy / UPDATES_PER_SEC;
 			if (b.x <= 0 || b.x >= width) b.dx *= -1;
-			if (b.y <= 0 || b.y >= height) b.dy *= -1;
+			if (b.y <= 0) b.dy *= -1;
+			if (b.y >= height) {
+				b.dy *= -1;
+				client.sendBall(b);
+				balls.remove(b);
+			}
 		}
 		update.trigger();
 	}
