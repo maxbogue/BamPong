@@ -1,8 +1,6 @@
 package bam.pong;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-
 import javax.swing.JFrame;
 
 /**
@@ -27,7 +25,7 @@ public class BamPongView extends JFrame {
 		setLayout( new BorderLayout() );
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		add( field, BorderLayout.CENTER );
+		add( this.field, BorderLayout.CENTER );
 		pack();
 		setVisible(true);
 	}
