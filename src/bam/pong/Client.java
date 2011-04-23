@@ -11,6 +11,8 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,39 +31,45 @@ public class Client {
 	// Use NIO channels to avoid having a thread per socket.
 	private ServerSocketChannel incoming;         // other clients connect here
 	private SocketChannel server;                 // our connection to the server
-	private Map<InetAddress,SocketChannel> peers; // connections to other clients
-
-	private Thread listener;   // thread dealing with incoming data
+	private Map<SocketChannel, Peer> peers; 	  // connections to other clients
+	private List<Peer> peerList = new LinkedList<Peer>();
+	
+	private Thread watcher;   // thread dealing with incoming data
 	private Selector selector; // selector to wait on for data
 	private Charset encoding;  // for string encoding
 	
-	private class Listener implements Runnable {
+	private class Watcher implements Runnable {
 		@Override
 		public void run() {
 			// loop while any socket is open
-			while( incoming.isOpen() || server.isOpen() || !peers.isEmpty() ) {
+			while ( incoming.isOpen() || server.isOpen() || !peers.isEmpty() ) {
 				try {
 					// wait on selector
 					selector.select(1000);
 					
 					// Handle all ready channels
-					for(SelectionKey k : selector.selectedKeys()) {
+					for (SelectionKey k : selector.selectedKeys()) {
+						
 						Channel c = k.channel();
 						
-						if( peers.containsKey(c) ) {
-							processPeerMessage((SocketChannel) c);
-						} else if( c == server ) {
+						if ( peers.containsKey(c) ) {
+							peers.get(c).processMessage();
+						} else if ( c == server ) {
 							processServerMessage();
-						} else if( c == incoming ) {
-							acceptNewPeer();
+						} else if ( c == incoming ) {
+							SocketChannel peerChannel = incoming.accept();
+							peerChannel.register(selector, SelectionKey.OP_READ );
+							Peer peer = new Peer(peerChannel);
+							peers.put(peerChannel, peer);
+							peerList.add(peer);
 						} else {
 							System.err.println( "Tried to process unknown socket." );
 						}
 					}
 					
 					// Check for closed peers
-					for(SocketChannel peer : peers.values()) {
-						if(!peer.isOpen()) {
+					for (SocketChannel peer : peers.keySet()) {
+						if (!peer.isOpen()) {
 							peers.remove(peer);
 						}
 					}
@@ -88,7 +96,7 @@ public class Client {
 	 * @throws IOException for any socket problems
 	 */
 	Client() throws IOException {
-		peers = new ConcurrentHashMap<InetAddress, SocketChannel>();
+		peers = new ConcurrentHashMap<SocketChannel, Peer>();
 		encoding = Charset.forName("UTF-8");
 
 		// create incoming socket
@@ -109,30 +117,24 @@ public class Client {
 		selector = Selector.open();
 		// register sockets
 		incoming.register(selector, SelectionKey.OP_READ );
-		server.  register(selector, SelectionKey.OP_READ );
+		server	.register(selector, SelectionKey.OP_READ );
 		
 		// Start listener thread
-		listener = new Thread(new Listener());
-		listener.run();
+		watcher = new Thread(new Watcher());
+		watcher.run();
 	}
 	
-	private void connectToClient(InetSocketAddress address) throws IOException {		
-		// Check for existing connection.
-		InetAddress host = address.getAddress();
-		if(peers.containsKey(host) && peers.get(host).isOpen())
-				return;  // Skip a peer we already have a connection to.
-		
-		// create socket, add to peers
-		SocketChannel peer = SocketChannel.open(address);
-		peers.put(address.getAddress(), peer);
-		peer.register(selector, SelectionKey.OP_READ );		
-	}
-	
-	private void acceptNewPeer() throws IOException {
-		SocketChannel peer = incoming.accept();
-		peers.put(peer.socket().getInetAddress(), peer);
-		peer.register(selector, SelectionKey.OP_READ );
-	}
+//	private void connectToPeer(InetSocketAddress address) throws IOException {		
+//		// Check for existing connection.
+//		InetAddress host = address.getAddress();
+//		if (peers.containsKey(host) && peers.get(host).isOpen())
+//				return;  // Skip a peer we already have a connection to.
+//		
+//		// create socket, add to peers
+//		SocketChannel peer = SocketChannel.open(address);
+//		peers.put(address.getAddress(), peer);
+//		peer.register(selector, SelectionKey.OP_READ );		
+//	}
 	
 	// Called whenever we get a message from the server
 	private void processServerMessage() throws IOException {
@@ -143,28 +145,20 @@ public class Client {
 		switch(message[0]) {
 		case NEW_CLIENT:
 			// Message format { NEW_CLIENT, ip1, ip2, ip3, ip4, port_high, port_low }
-			byte address[] = Arrays.copyOfRange(message, 1, 5);
-			int port = message[5] * 256 + message[6];
-			InetSocketAddress peer = new InetSocketAddress(
-					InetAddress.getByAddress(address), port);
-			connectToClient(peer);
+//			byte address[] = Arrays.copyOfRange(message, 1, 5);
+//			int port = message[5] * 256 + message[6];
+//			InetSocketAddress peer = new InetSocketAddress(
+//					InetAddress.getByAddress(address), port);
+//			connectToPeer(peer);
 			break;
 		default:
 			System.err.println("Unknown server message type: " + message[0]);
 		}
 	}
 	
-	// Called whenever we get a message from a peer
-	private void processPeerMessage(SocketChannel peer) throws IOException {
-		// Print message
-		ByteBuffer message = ByteBuffer.allocate(100);
-		peer.read(message);
-		System.out.println(encoding.decode(message));
-	}
-	
 	void sendMessageToClients(String message) throws IOException {
 		ByteBuffer encoded = encoding.encode(message);
-		for(SocketChannel c : peers.values() )
+		for(SocketChannel c : peers.keySet() )
 			c.write(encoded);
 	}
 	

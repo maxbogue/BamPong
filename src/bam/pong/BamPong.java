@@ -20,7 +20,7 @@ public class BamPong {
 		int h = 200;
 		
 		// Ball size must be subtracted here so the balls look like they hit the wall.
-		Engine e = new Engine(w - BALL_SIZE, h - BALL_SIZE);
+		Engine e = new Engine(w - BALL_SIZE, h + BALL_SIZE);
 		GameField f = new GameField();
 		f.setPreferredSize(new Dimension(w, h));
 		e.addListener(f);

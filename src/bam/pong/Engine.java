@@ -1,10 +1,10 @@
 package bam.pong;
 
-import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * Handles the ball movement physics.
@@ -25,11 +25,16 @@ public class Engine implements Runnable {
 	/** All balls in the game. */
 	private Set<Ball> balls = new HashSet<Ball>();
 
+	/** Width of the playing field. */
 	private int width;
+	
+	/** Height of the playing field. */
 	private int height;
 	
+	/** Everything listening to the engine. */
 	private List<EngineListener> listeners = new LinkedList<EngineListener>();
 	
+	/** Makes an engine using the given width and height. */
 	public Engine(int width, int height) {
 		ballMover = new Thread(this);
 		this.width = width;
@@ -47,19 +52,19 @@ public class Engine implements Runnable {
 	
 	/** Updates the position of each ball and triggers a view update. */
 	private void updateBallPositions() {
-		for (Ball b : balls) {
+		for (Ball b : new HashSet<Ball>(balls)) {
 			b.x += b.dx / UPDATES_PER_SEC;
 			b.y += b.dy / UPDATES_PER_SEC;
 			if (b.x <= 0 || b.x >= width) b.dx *= -1;
 			if (b.y <= 0) {
 				b.dy *= -1;
 				for (EngineListener el : listeners) el.ballDropped(b);
-				balls.remove(b);
+//				balls.remove(b);
 			}
 			if (b.y >= height) {
 				b.dy *= -1;
 				for (EngineListener el : listeners) el.sendBall(b);
-				balls.remove(b);
+//				balls.remove(b);
 			}
 		}
 		for (EngineListener el : listeners) el.ballsUpdated(balls);

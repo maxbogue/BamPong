@@ -31,7 +31,7 @@ public class GameField extends JComponent implements EngineListener {
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, // Anti-alias!
 		        RenderingHints.VALUE_ANTIALIAS_ON);
 		for ( Ball b : balls ) {
-			g2.fillOval((int)b.x, (int)b.y, BamPong.BALL_SIZE, BamPong.BALL_SIZE);
+			g2.fillOval((int)b.x, (int)b.y - BamPong.BALL_SIZE, BamPong.BALL_SIZE, BamPong.BALL_SIZE);
 		}
 	}
 
