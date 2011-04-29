@@ -153,21 +153,12 @@ public class PeerCommunication {
 			new_peers.remove(c);
 		}
 		
+		// Assemble response 
 		message.clear();
 		message.putInt(me.getId());
-
-		// Mark where string length will go
-		message.mark();
-		message.position(message.position() + 4);
-
-		// Determine length
-		int len = message.position();
-		message.put(utf8.encode(me.getName()));
-		len = message.position() - len;
-		
-		// Go back and add length
-		message.reset();
-		message.putInt(len);
+		ByteBuffer name = utf8.encode(me.getName());
+		message.putShort((short) name.capacity());
+		message.put(name);
 		
 		// Send message
 		c.write(message);
@@ -185,7 +176,7 @@ public class PeerCommunication {
 		
 		// Extract information
 		int id = message.getInt();
-		int len = message.getInt();
+		int len = message.getShort();
 		String name = utf8.decode((ByteBuffer) message.slice().limit(len)).toString();
 		
 		// Move to connected peers lists
@@ -196,11 +187,46 @@ public class PeerCommunication {
 	}
 	
 	// Send ball to the appropriate client.
-	void sendBall(Ball b) {
-		// Calculate the peer to send the ball to using b.x and send it.
+	public void sendBall(Ball b, Peer p) {
 	}
 	
+	public void sendDebug(String message) throws IOException {
+		ByteBuffer msg  = utf8.encode(message);
+		ByteBuffer buff = ByteBuffer.allocateDirect(msg.position() + 3);
+		buff.put(MSG_DEBUG);
+		buff.putShort((short) msg.capacity());
+		buff.put(msg);
+		for ( SocketChannel c : peers.keySet() ) {
+			c.write(buff);
+		}
+	}
+	
+	private static final byte MSG_DEBUG = 0;
+	
 	// Called when an established peer sends us a message
-	private void processPeerMessage(SocketChannel c) {
+	private void processPeerMessage(SocketChannel c) throws IOException {
+		ByteBuffer b = ByteBuffer.allocateDirect(1024);
+		c.read(b);
+		
+		switch(b.get()) {
+		case MSG_DEBUG:
+			short len = b.getShort();
+			String message = utf8.decode((ByteBuffer) b.slice().limit(len)).toString();
+			System.out.println(message);
+			break;
+//		Pass ball
+//			Ball data; paxos confirmation that passer has ball to pass?
+//		Dropped ball
+//			Informative to all peers & server
+//			(Maybe implement as passing ball to server?)
+//			Server may respond with “you lose”
+//		Drop player
+//			Paxos confirmation that client is gone
+//		Heartbeat?
+//			Probably only sent in response to drop
+//			Ping/pong messages
+//		Server failure
+//			All peers, send choice of backup	
+		}
 	}
 }
