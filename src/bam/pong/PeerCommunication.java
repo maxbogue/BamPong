@@ -144,7 +144,7 @@ public class PeerCommunication {
 
 	// Called when a peer we're trying to connect to sends us a message
 	private void processNewPeer(SocketChannel c) throws IOException {
-		ByteBuffer message = ByteBuffer.allocateDirect(1024);
+		ByteBuffer message = ByteBuffer.allocateDirect(4);
 
 		c.read(message);
 		if(!message.equals(utf8.encode("bam!"))) {
@@ -171,13 +171,14 @@ public class PeerCommunication {
 
 	// Called when someone who's just connected to us sends a messages
 	private void processNewSocket(SocketChannel c) throws IOException {
-		ByteBuffer message = ByteBuffer.allocateDirect(1024);
+		ByteBuffer message = ByteBuffer.allocateDirect(3);
 		c.read(message);
 		
 		// Extract information
 		int id = message.getInt();
 		int len = message.getShort();
-		String name = utf8.decode((ByteBuffer) message.slice().limit(len)).toString();
+		message = ByteBuffer.allocateDirect(len);
+		String name = utf8.decode(message).toString();
 		
 		// Move to connected peers lists
 		Peer peer = new Peer(id, name);
@@ -205,13 +206,18 @@ public class PeerCommunication {
 	
 	// Called when an established peer sends us a message
 	private void processPeerMessage(SocketChannel c) throws IOException {
-		ByteBuffer b = ByteBuffer.allocateDirect(1024);
+		ByteBuffer b = ByteBuffer.allocateDirect(1);
 		c.read(b);
 		
-		switch(b.get()) {
+		int type = b.get();
+		
+		switch(type) {
 		case MSG_DEBUG:
+			b = ByteBuffer.allocateDirect(2);
+			c.read(b);
 			short len = b.getShort();
-			String message = utf8.decode((ByteBuffer) b.slice().limit(len)).toString();
+			b = ByteBuffer.allocateDirect(len);
+			String message = utf8.decode(b).toString();
 			System.out.println(message);
 			break;
 //		Pass ball
