@@ -1,9 +1,12 @@
 package bam.pong;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
+import java.nio.channels.Channels;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -120,6 +123,14 @@ public class PeerCommunication {
 		watcher = new Thread(new Watcher());
 		watcher.run();
 	}
+	
+	private DataInputStream inStream(SocketChannel c) {
+		return new DataInputStream(Channels.newInputStream(c));
+	}
+	
+	private DataOutputStream outStream(SocketChannel c) {
+		return new DataOutputStream(Channels.newOutputStream(c));
+	}
 
 	/** Connect to a new peer. */
 	public void connectToPeer(Peer peer) throws IOException {
@@ -171,14 +182,11 @@ public class PeerCommunication {
 
 	// Called when someone who's just connected to us sends a messages
 	private void processNewSocket(SocketChannel c) throws IOException {
-		ByteBuffer message = ByteBuffer.allocateDirect(3);
-		c.read(message);
+		DataInputStream in = inStream(c);
 		
 		// Extract information
-		int id = message.getInt();
-		int len = message.getShort();
-		message = ByteBuffer.allocateDirect(len);
-		String name = utf8.decode(message).toString();
+		int id = in.readInt();
+		String name = in.readUTF();
 		
 		// Move to connected peers lists
 		Peer peer = new Peer(id, name);
@@ -206,18 +214,14 @@ public class PeerCommunication {
 	
 	// Called when an established peer sends us a message
 	private void processPeerMessage(SocketChannel c) throws IOException {
-		ByteBuffer b = ByteBuffer.allocateDirect(1);
-		c.read(b);
-		
-		int type = b.get();
+		DataInputStream in  = inStream(c);
+		DataOutputStream out = outStream(c);
+
+		byte type = in.readByte();
 		
 		switch(type) {
 		case MSG_DEBUG:
-			b = ByteBuffer.allocateDirect(2);
-			c.read(b);
-			short len = b.getShort();
-			b = ByteBuffer.allocateDirect(len);
-			String message = utf8.decode(b).toString();
+			String message = in.readUTF();
 			System.out.println(message);
 			break;
 //		Pass ball
