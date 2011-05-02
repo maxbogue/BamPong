@@ -149,7 +149,7 @@ public class PeerCommunication {
 	// Called when a peer tries to connect to us
 	private void acceptIncomingPeer() throws IOException {
 		SocketChannel socket = incoming.accept();
-		socket.write(utf8.encode("bam!")); // Send recognition signal
+		socket.write(utf8.encode("bam!")); // Send recognition signals
 		new_sockets.add(socket);
 	}
 
