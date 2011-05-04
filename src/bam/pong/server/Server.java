@@ -139,7 +139,7 @@ public class Server {
 		DataInputStream s = new DataInputStream(Channels.newInputStream(c));
 		String name = s.readUTF();
 		int port = s.readInt();
-		return new Client(nextID++, name, port, c);
+		return new Client(name, port, c);
 	}
 	
 }
