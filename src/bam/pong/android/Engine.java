@@ -72,7 +72,7 @@ public class Engine extends View
 			b.speed[1] = -b.speed[1];
 		}
 		// }
-}
+	}
 
 	private boolean isOnScreen(int x, int y) {
 		//for(Ball b :bs)
