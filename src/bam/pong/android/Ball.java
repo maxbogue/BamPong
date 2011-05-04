@@ -37,8 +37,10 @@ public class Ball extends View {
         public Ball(Context context, Paddle paddle, int screenWidth, int screenHeight) {
                 super(context);
         
-                x = screenWidth/2 - diameter;
+               x = screenWidth/2 - diameter;
                 y = screenHeight/2 - diameter;
+                //this.x=x;
+                //this.y=y;
                 speed = new int[2];
                 speed[0] = 0;
                 speed[1] = 5;

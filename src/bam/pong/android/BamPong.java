@@ -6,7 +6,6 @@ package bam.pong.android;
 
 import android.app.Activity;
 
-
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +18,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 
 public class BamPong extends Activity implements  OnKeyListener, OnTouchListener , OnClickListener {
+
 	// private Engine En;
 
 	private GameField gf;
@@ -34,6 +34,7 @@ public class BamPong extends Activity implements  OnKeyListener, OnTouchListener
 
 		//Height of display in pixels
 		int ht = display.heightPixels;
+
 
 		//Width of Display in pixels
 		int wdt = display.widthPixels;
@@ -56,8 +57,7 @@ public class BamPong extends Activity implements  OnKeyListener, OnTouchListener
 		return false;
 	}
 
-	public boolean onKeyDown(int Code, KeyEvent e)
-	{
+	public boolean onKeyDown(int Code, KeyEvent e) {
 		switch(Code) {
 		//Left movement of arrow key
 		case KeyEvent.KEYCODE_DPAD_LEFT : 
@@ -73,11 +73,14 @@ public class BamPong extends Activity implements  OnKeyListener, OnTouchListener
 		return true;
 	}
 
-	public boolean onTouch(View v,MotionEvent event)
-	{  
-		//Do stuff here to make the touch screen work
+	public boolean onTouch(View v,MotionEvent event) {  
+		float x = event.getX();
+		float y = event.getY();
+		gf.en.paddleTouched(x,y);
+
 		return true;
 	}
+
 
 	public void onClick(View v) {
 		gf.en.moveLeft();
