@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import bam.pong.ChannelHelper;
+import bam.pong.Constants;
 
 /**
  * Server class.  Handles all game setup for clients.
@@ -22,12 +23,6 @@ import bam.pong.ChannelHelper;
  */
 public class Server {
 
-	private static final byte LIST_GAMES = 1;
-	private static final byte CREATE_GAME = 2;
-	private static final byte CANCEL_GAME = 3;
-	private static final byte JOIN_GAME = 4;
-	private static final byte START_GAME = 5;
-	
 	/** For new incoming channels. */
 	private ServerSocketChannel incoming;
 	
@@ -136,6 +131,18 @@ public class Server {
 			b = ByteBuffer.allocateDirect(2);
 			b.put(CREATE_GAME);
 			String name = ChannelHelper.getString(c);
+//		DataInputStream dis = new DataInputStream(Channels.newInputStream(c));
+//		DataOutputStream dos = new DataOutputStream(Channels.newOutputStream(c));
+//		byte k = dis.readByte();
+//		String name;
+//		switch (k) {
+//		case Constants.LIST_GAMES:
+//			
+//			dos.writeInt(games.size());
+//			for (Game g : games.values()) dos.writeUTF(g.getName());
+//			break;
+//		case Constants.CREATE_GAME:
+//			name = dis.readUTF();
 			if (games.containsKey(name)) {
 				b.put((byte) 0); // False = NAK
 			} else {
@@ -145,14 +152,38 @@ public class Server {
 			b.flip();
 			ChannelHelper.sendAll(c, b);
 			break;
-		case CANCEL_GAME:
+		case Constants.CANCEL_GAME:
+			name = dis.readUTF();
+			if (games.containsKey(name) && !games.get(name).hasBegun()) {
+				dos.writeBoolean(true);
+				games.get(name).cancel();
+			} else {
+				dos.writeBoolean(false);
+			}
 			break;
-		case JOIN_GAME:
+		case Constants.JOIN_GAME:
+			name = dis.readUTF();
+			if (games.containsKey(name)) {
+				dos.writeBoolean(true);
+				games.get(name).addPlayer(clients.get(c));
+			} else {
+				dos.writeBoolean(false);
+			}
 			break;
-		case START_GAME:
+		case Constants.START_GAME:
+			name = dis.readUTF();
+			if (games.containsKey(name)) {
+				dos.writeBoolean(true);
+				games.get(name).startGame();
+			} else {
+				dos.writeBoolean(false);
+			}
 			break;
 		default:
+			System.err.println("Invalid key byte: " + k);
+			break;
 		}
+		dos.flush();
 	}
 	
 	public Client makeClient(SocketChannel c) throws IOException {
