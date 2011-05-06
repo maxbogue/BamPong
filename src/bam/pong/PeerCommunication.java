@@ -1,13 +1,10 @@
 package bam.pong;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
-import java.nio.channels.Channels;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -42,12 +39,16 @@ public class PeerCommunication {
 			while ( incoming.isOpen() || !peers.isEmpty() ) {
 				try {
 					// wait on selector
-					selector.select(1000);
+					selector.select(10000);
 					
 					// Handle all ready channels
-					for (SelectionKey k : selector.selectedKeys()) {
+					Set<SelectionKey> selected = selector.selectedKeys();
+					for (SelectionKey k : selected) {
+						selected.remove(k); // We're handling it
+
+						if(!k.isValid()) continue; // Invalid?
+
 						Channel c = k.channel();
-						
 						if ( c.equals(incoming) ) {
 							acceptIncomingPeer();
 						} else if ( new_sockets.contains(c) ) {
@@ -58,12 +59,15 @@ public class PeerCommunication {
 							processPeerMessage((SocketChannel) c);
 						} else {
 							System.err.println( "Tried to process unknown socket." );
+							k.cancel(); // If we don't know it now, we'll probably never know it.
+							c.close();
 						}
 					}
 					
 					// Check for closed sockets
 					for (SocketChannel socket : peers.keySet()) {
 						if (!socket.isOpen()) {
+							socket.keyFor(selector).cancel();
 							Peer peer = peers.get(socket);
 							peers.remove(socket);
 							sockets.remove(peer);
@@ -72,13 +76,18 @@ public class PeerCommunication {
 					}
 					for (SocketChannel socket : new_sockets) {
 						if (!socket.isOpen()) {
+							socket.keyFor(selector).cancel();
 							new_sockets.remove(socket);
 						}
 					}
 					for (SocketChannel socket : new_peers.keySet()) {
 						if (!socket.isOpen()) {
+							socket.keyFor(selector).cancel();
 							new_peers.remove(socket);
 							// TODO: Retry?
+						} else if(!socket.isRegistered()) {
+							// Check for new sockets.
+							socket.register(selector, SelectionKey.OP_READ);
 						}
 					}
 				} catch (IOException e) {
@@ -91,7 +100,6 @@ public class PeerCommunication {
 				selector.close();
 			} catch (IOException e) {
 				// Not much to do.
-				System.err.println(e);
 				e.printStackTrace();
 			}
 		}
@@ -111,7 +119,7 @@ public class PeerCommunication {
 		new_sockets = new HashSet<SocketChannel>();
 		new_peers   = new HashMap<SocketChannel, Peer>();
 		
-		utf8 = Charset.forName("UTF-8");
+		utf8 = ChannelHelper.utf8;
 
 		// create incoming socket
 		incoming = ServerSocketChannel.open();
@@ -128,6 +136,7 @@ public class PeerCommunication {
 		watcher.start();
 	}
 	
+	/** Returns the port this object is listening to for other peers. */
 	public int getPort() {
 		return incoming.socket().getLocalPort();
 	}
@@ -142,11 +151,15 @@ public class PeerCommunication {
 
 		// create socket, add to peers
 		SocketChannel socket = SocketChannel.open(address);
-		new_peers.put(socket, peer);
 		socket.configureBlocking(false);
-		socket.register(selector, SelectionKey.OP_READ );
+		new_peers.put(socket, peer); // watcher will register it
+		selector.wakeup();
 	}
 
+	private void log(String message) {
+		System.err.println(me.getName() + ": " + message);
+	}
+	
 	// Called when a peer tries to connect to us
 	private void acceptIncomingPeer() throws IOException {
 		SocketChannel socket = incoming.accept();
@@ -165,17 +178,17 @@ public class PeerCommunication {
 			// Connected to something that wasn't a BAMPong client...
 			c.close();
 			Peer p = new_peers.remove(c);
-			System.err.println( "Closing attempt to " + p + " expected: bam!, got: " + recognize);
+			log( "Closing attempt to " + p.getName() + " got " + recognize );
 			return;
 		}
 		
 		// Assemble response 
 		ByteBuffer name = utf8.encode(me.getName());
-		message = ByteBuffer.allocateDirect(name.capacity() + 6);
+		message = ByteBuffer.allocateDirect(name.limit() + 6);
 		message.putInt(me.getId());
-		message.putShort((short) name.capacity());
+		message.putShort((short) name.limit());
 		message.put(name);
-		message.rewind();
+		message.flip();
 		
 		// Send message
 		c.write(message);
@@ -198,30 +211,40 @@ public class PeerCommunication {
 		sockets.put(peer, c);
 	}
 	
-	// Send ball to the appropriate client.
+	/** Initiate Paxos for new ball location.  */
 	public void sendBall(Ball b, Peer p) {
 	}
 	
+	/** Send a debug message to all connected peers. */
 	public void sendDebug(String message) throws IOException {
 		ByteBuffer msg  = utf8.encode(message);
-		ByteBuffer buff = ByteBuffer.allocateDirect(msg.capacity() + 3);
+		ByteBuffer buff = ByteBuffer.allocateDirect(msg.limit() + 3);
 		buff.put(MSG_DEBUG);
-		buff.putShort((short) msg.capacity());
+		buff.putShort((short) msg.limit());
 		buff.put(msg);
+		buff.flip();
 		for ( SocketChannel c : peers.keySet() ) {
-			c.write(buff);
+			ChannelHelper.sendAll(c, buff);
+			buff.rewind();
 		}
 	}
 	
+	//////// List of message types
 	private static final byte MSG_DEBUG = 0;
 	
 	// Called when an established peer sends us a message
 	private void processPeerMessage(SocketChannel c) throws IOException {
-		byte type = ChannelHelper.getByte(c);
+		Peer peer = peers.get(c);
+
+		ByteBuffer b = ByteBuffer.allocateDirect(1);
+		if (c.read(b) == 0)
+			return; // No data?
+		b.flip();
+		byte type = b.get();
 		
 		switch(type) {
 		case MSG_DEBUG:
-			System.out.println(ChannelHelper.getString(c));
+			log(peer.getName()+": "+ChannelHelper.getString(c));
 			break;
 //		Pass ball
 //			Ball data; paxos confirmation that passer has ball to pass?
@@ -239,6 +262,7 @@ public class PeerCommunication {
 		}
 	}
 	
+	// Test method.  Attempts to establish a connection and send a debug message.
 	public static void main(String args[]) {
 		try {
 			Peer p1 = new Peer(1, "p1");
