@@ -40,6 +40,15 @@ public class Server {
 		incoming.socket().bind(null);
 	}
 	
+	public Server(int port) throws IOException {
+		incoming = ServerSocketChannel.open();
+		incoming.socket().bind(null, port);
+	}
+	
+	public int getPort() {
+		return incoming.socket().getLocalPort();
+	}
+	
 	public void run() throws IOException {
 		Set<SocketChannel> handShaken = new HashSet<SocketChannel>();
 		Selector selector = Selector.open();
@@ -62,10 +71,16 @@ public class Server {
 						if (utf8.decode(bb).toString().equals("bam?")) {
 							sc.write(utf8.encode("BAM!"));
 							handShaken.add(sc);
+							
+							sc.configureBlocking(false);
+							sc.register(selector, SelectionKey.OP_READ);
+						} else {
+							sc.close();
 						}
 					} else if ( handShaken.contains(c) ) {
 						SocketChannel sc = (SocketChannel) c;
 						clients.put(sc, makeClient(sc));
+						handShaken.remove(c);
 					} else if ( clients.containsKey(c) ) {
 						processClientMessage((SocketChannel) c);
 					} else {
