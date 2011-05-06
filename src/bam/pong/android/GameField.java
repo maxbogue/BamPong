@@ -39,7 +39,7 @@ public class GameField extends View implements EngineListener {
 	}
 
 	protected void onDraw(Canvas canvas) {
-		postInvalidate();
+//		postInvalidate();
 		for (Ball b : balls.keySet()) {
 			balls.get(b).setBounds((int)b.x, (int)b.y, (int)b.x + D, (int)b.y + D);
 			balls.get(b).draw(canvas);
