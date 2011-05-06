@@ -111,6 +111,7 @@ public class Server {
 		switch (k) {
 		case LIST_GAMES:
 			b = ByteBuffer.allocateDirect(1024);
+			b.put(LIST_GAMES);
 			b.putInt(games.size());
 			for (Game g : games.values()) {
 				if (!ChannelHelper.putString(b,g.name)) {
@@ -128,10 +129,12 @@ public class Server {
 					ChannelHelper.putString(b, e);
 				}
 			}
+			b.flip();
 			ChannelHelper.sendAll(c, b);
 			break;
 		case CREATE_GAME:
-			b = ByteBuffer.allocateDirect(1);
+			b = ByteBuffer.allocateDirect(2);
+			b.put(CREATE_GAME);
 			String name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
 				b.put((byte) 0); // False = NAK
@@ -139,6 +142,8 @@ public class Server {
 				games.put(name, new Game(name, clients.get(c)));
 				b.put((byte) 1); // OK
 			}
+			b.flip();
+			ChannelHelper.sendAll(c, b);
 			break;
 		case CANCEL_GAME:
 			break;
