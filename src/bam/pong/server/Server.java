@@ -131,28 +131,15 @@ public class Server {
 			b = ByteBuffer.allocateDirect(2);
 			b.put(Constants.CREATE_GAME);
 			String name = ChannelHelper.getString(c);
-		}
-//		DataInputStream dis = new DataInputStream(Channels.newInputStream(c));
-//		DataOutputStream dos = new DataOutputStream(Channels.newOutputStream(c));
-//		byte k = dis.readByte();
-//		String name;
-//		switch (k) {
-//		case Constants.LIST_GAMES:
-//			
-//			dos.writeInt(games.size());
-//			for (Game g : games.values()) dos.writeUTF(g.getName());
-//			break;
-//		case Constants.CREATE_GAME:
-//			name = dis.readUTF();
-//			if (games.containsKey(name)) {
-//				b.put((byte) 0); // False = NAK
-//			} else {
-//				games.put(name, new Game(name, clients.get(c)));
-//				b.put((byte) 1); // OK
-//			}
-//			b.flip();
-//			ChannelHelper.sendAll(c, b);
-//			break;
+			if (games.containsKey(name)) {
+				b.put((byte) 0); // False = NAK
+			} else {
+				games.put(name, new Game(name, clients.get(c)));
+				b.put((byte) 1); // OK
+			}
+			b.flip();
+			ChannelHelper.sendAll(c, b);
+			break;
 //		case Constants.CANCEL_GAME:
 //			name = dis.readUTF();
 //			if (games.containsKey(name) && !games.get(name).hasBegun()) {
@@ -180,11 +167,10 @@ public class Server {
 //				dos.writeBoolean(false);
 //			}
 //			break;
-//		default:
-//			System.err.println("Invalid key byte: " + k);
-//			break;
-//		}
-//		dos.flush();
+		default:
+			System.err.println("Invalid key byte: " + k);
+			break;
+		}
 	}
 	
 	public Client makeClient(SocketChannel c) throws IOException {
