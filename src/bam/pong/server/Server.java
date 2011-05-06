@@ -50,7 +50,8 @@ public class Server {
 	}
 	
 	public void run() throws IOException {
-		Set<SocketChannel> handShaken = new HashSet<SocketChannel>();
+		Set<SocketChannel> handShaken  = new HashSet<SocketChannel>();
+		Set<SocketChannel> new_sockets = new HashSet<SocketChannel>();
 		Selector selector = Selector.open();
 		incoming.configureBlocking(false);
 		incoming.register( selector, SelectionKey.OP_ACCEPT );
@@ -67,13 +68,16 @@ public class Server {
 					
 					if ( c == incoming ) {
 						SocketChannel sc = incoming.accept();
+						new_sockets.add(sc);
+						sc.configureBlocking(false);
+						sc.register(selector, SelectionKey.OP_READ);
+					} else if ( new_sockets.contains(c) ) {
+						SocketChannel sc = (SocketChannel) c;
+						new_sockets.remove(sc);
 						ByteBuffer bb = ChannelHelper.readBytes(sc, 4);
 						if (utf8.decode(bb).toString().equals("bam?")) {
 							sc.write(utf8.encode("BAM!"));
 							handShaken.add(sc);
-							
-							sc.configureBlocking(false);
-							sc.register(selector, SelectionKey.OP_READ);
 						} else {
 							sc.close();
 						}
@@ -97,11 +101,12 @@ public class Server {
 						// TODO: Reconnect, propose drop
 					}
 				}
-				for (SocketChannel socket : handShaken) {
-					if (!socket.isOpen()) {
+				for (SocketChannel socket : handShaken)
+					if (!socket.isOpen())
 						handShaken.remove(socket);
-					}
-				}
+				for (SocketChannel socket : new_sockets)
+					if (!socket.isOpen())
+						handShaken.remove(socket);
 			} catch (IOException e) {
 				// TODO Handle this better.  In mean time, just keep going.
 				System.err.println(e);
