@@ -204,6 +204,8 @@ public class ServerCommunication {
 			for (String s : sc.getGames()) {
 				System.out.println(s);
 			}
+			
+			server.shutdown();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

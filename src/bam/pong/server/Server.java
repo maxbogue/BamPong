@@ -35,6 +35,8 @@ public class Server {
 	/** For string encoding. */
 	private Charset utf8 = Charset.forName("UTF-8");
 	
+	private Selector selector;
+	
 	public Server() throws IOException {
 		incoming = ServerSocketChannel.open();
 		incoming.socket().bind(null);
@@ -52,10 +54,12 @@ public class Server {
 	public void run() throws IOException {
 		Set<SocketChannel> handShaken  = new HashSet<SocketChannel>();
 		Set<SocketChannel> new_sockets = new HashSet<SocketChannel>();
-		Selector selector = Selector.open();
+
+		selector = Selector.open();
 		incoming.configureBlocking(false);
 		incoming.register( selector, SelectionKey.OP_ACCEPT );
-		while ( incoming.isOpen() || !clients.isEmpty() || !handShaken.isEmpty() ) {
+
+		while ( incoming.isOpen() || !clients.isEmpty() ) {
 			try {
 				// wait on selector
 				selector.select(10000);
@@ -113,6 +117,18 @@ public class Server {
 				e.printStackTrace();
 			}
 		}
+		
+		// Close all new sockets
+		new_sockets.addAll(handShaken);
+		for (SocketChannel socket : new_sockets) {
+			try {
+				socket.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Close the selector
 		try {
 			selector.close();
 		} catch (IOException e) {
@@ -120,6 +136,24 @@ public class Server {
 			System.err.println(e);
 			e.printStackTrace();
 		}
+	}
+	
+	/** Close ports so the server loop stops */
+	public void shutdown() {
+		try {
+			incoming.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		for( SocketChannel c : clients.keySet() ) {
+			try {
+				c.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if ( selector != null )
+			selector.wakeup();
 	}
 	
 	public void processClientMessage(SocketChannel c) throws IOException {
