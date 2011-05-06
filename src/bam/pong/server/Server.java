@@ -195,19 +195,13 @@ public class Server {
 			}
 			break;
 		case Constants.CANCEL_GAME:
-			b = ByteBuffer.allocateDirect(2);
-			b.put(Constants.CANCEL_GAME);
-			
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name) && !games.get(name).hasBegun()) {
-				b.put((byte) 1);
+				ChannelHelper.putBoolean(c, k, true);
 				games.get(name).cancel();
 			} else {
-				b.put((byte) 0);
+				ChannelHelper.putBoolean(c, k, false);
 			}
-			
-			b.flip();
-			ChannelHelper.sendAll(c, b);
 			break;
 		case Constants.JOIN_GAME:
 			name = ChannelHelper.getString(c);
