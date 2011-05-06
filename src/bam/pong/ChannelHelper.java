@@ -24,8 +24,10 @@ public class ChannelHelper {
 		int retries = 10;
 		while ( b.remaining() > 0 && retries > 0 ) {
 			int read = c.read(b);
-			if ( read < 0 )
+			if ( read < 0 ) {
+				c.close();
 				throw new IOException("Socket closed early.");
+			}
 			retries--;
 		}
 		if ( retries <= 0 )
