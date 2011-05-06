@@ -99,10 +99,12 @@ public class Server {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public void processClientMessage(SocketChannel c) throws IOException {
 		byte k = ChannelHelper.getByte(c);
 		ByteBuffer b;
+		String name;
+		
 		switch (k) {
 		case Constants.LIST_GAMES:
 			b = ByteBuffer.allocateDirect(1024);
@@ -128,45 +130,47 @@ public class Server {
 			ChannelHelper.sendAll(c, b);
 			break;
 		case Constants.CREATE_GAME:
-			b = ByteBuffer.allocateDirect(2);
-			b.put(Constants.CREATE_GAME);
-			String name = ChannelHelper.getString(c);
+			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				b.put((byte) 0); // False = NAK
+				ChannelHelper.putBoolean(c, k, false);
 			} else {
 				games.put(name, new Game(name, clients.get(c)));
-				b.put((byte) 1); // OK
+				ChannelHelper.putBoolean(c, k, true);
 			}
+			break;
+		case Constants.CANCEL_GAME:
+			b = ByteBuffer.allocateDirect(2);
+			b.put(Constants.CANCEL_GAME);
+			
+			name = ChannelHelper.getString(c);
+			if (games.containsKey(name) && !games.get(name).hasBegun()) {
+				b.put((byte) 1);
+				games.get(name).cancel();
+			} else {
+				b.put((byte) 0);
+			}
+			
 			b.flip();
 			ChannelHelper.sendAll(c, b);
 			break;
-//		case Constants.CANCEL_GAME:
-//			name = dis.readUTF();
-//			if (games.containsKey(name) && !games.get(name).hasBegun()) {
-//				dos.writeBoolean(true);
-//				games.get(name).cancel();
-//			} else {
-//				dos.writeBoolean(false);
-//			}
-//			break;
-//		case Constants.JOIN_GAME:
-//			name = dis.readUTF();
-//			if (games.containsKey(name)) {
-//				dos.writeBoolean(true);
-//				games.get(name).addPlayer(clients.get(c));
-//			} else {
-//				dos.writeBoolean(false);
-//			}
-//			break;
-//		case Constants.START_GAME:
-//			name = dis.readUTF();
-//			if (games.containsKey(name)) {
-//				dos.writeBoolean(true);
-//				games.get(name).startGame();
-//			} else {
-//				dos.writeBoolean(false);
-//			}
-//			break;
+		case Constants.JOIN_GAME:
+			name = ChannelHelper.getString(c);
+			if (games.containsKey(name)) {
+				ChannelHelper.putBoolean(c, k, true);
+				games.get(name).addPlayer(clients.get(c));
+			} else {
+				ChannelHelper.putBoolean(c, k, false);
+			}
+			break;
+		case Constants.START_GAME:
+			name = ChannelHelper.getString(c);
+			if (games.containsKey(name)) {
+				ChannelHelper.putBoolean(c, k, true);
+				games.get(name).startGame();
+			} else {
+				ChannelHelper.putBoolean(c, k, false);
+			}
+			break;
 		default:
 			System.err.println("Invalid key byte: " + k);
 			break;

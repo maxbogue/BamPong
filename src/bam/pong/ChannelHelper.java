@@ -113,4 +113,25 @@ public class ChannelHelper {
 		b.put(s);
 		return true;
 	}
+	
+	/** Send a single byte to a channel. */
+	public static void putByte(SocketChannel c, byte b) throws IOException {
+		ByteBuffer msg = ByteBuffer.allocate(1);
+		msg.put(b);
+		msg.flip();
+		sendAll(c, msg);
+	}
+	
+	/** Send a byte and a boolean to a channel.
+	 * 
+	 * Generally used for a message type and a reply value.
+	 */
+	public static void putBoolean(SocketChannel c, byte k, boolean r) throws IOException {
+		ByteBuffer b = ByteBuffer.allocateDirect(2);
+		b.put(k);
+		b.put((byte) (r ? 1 : 0));
+		b.flip();
+		
+		sendAll(c, b);
+	}
 }
