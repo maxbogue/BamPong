@@ -26,7 +26,7 @@ public class BamPong {
 		int pw = 80; // Paddle width.
 		int ph = 15; // Paddle height.
 		
-		Paddle paddle = new Paddle(pw, ph, 30, w/2 - pw/2, h - ph - 5);
+		Paddle paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
 		
 		// Ball size must be subtracted here so the balls look like they hit the wall.
 		Engine e = new Engine(w, h, paddle);

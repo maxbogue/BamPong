@@ -19,7 +19,8 @@ public class BamPongView extends JFrame {
 	public BamPongView(GameField field) {
 
 		this.field = field;
-
+		addKeyListener( field );
+		
         setTitle( "BAM!Pong" );
 		setLayout( new BorderLayout() );
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

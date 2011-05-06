@@ -3,6 +3,8 @@ package bam.pong.desktop;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Set;
 
 import javax.swing.JComponent;
@@ -18,7 +20,7 @@ import bam.pong.Paddle;
  * @author Max
  */
 @SuppressWarnings("serial")
-public class GameField extends JComponent implements EngineListener {
+public class GameField extends JComponent implements EngineListener, KeyListener {
 
 	private Set<Ball> balls;
 	private Paddle paddle;
@@ -37,7 +39,7 @@ public class GameField extends JComponent implements EngineListener {
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, // Anti-alias!
 		        RenderingHints.VALUE_ANTIALIAS_ON);
 		for ( Ball b : balls ) {
-			g2.fillOval((int)b.x, (int)b.y - b.D, b.D, b.D);
+			g2.fillOval((int)b.x, (int)b.y, b.D, b.D);
 		}
 		g2.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 	}
@@ -55,5 +57,33 @@ public class GameField extends JComponent implements EngineListener {
 
 	@Override
 	public void ballAdded(Ball b) {}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+		switch(e.getKeyCode()) {
+		case KeyEvent.VK_LEFT:
+			paddle.setMovement(Paddle.Movement.LEFT);
+			break;
+		case KeyEvent.VK_RIGHT:
+			paddle.setMovement(Paddle.Movement.RIGHT);
+			break;
+		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		switch(e.getKeyCode()) {
+		case KeyEvent.VK_LEFT:
+		case KeyEvent.VK_RIGHT: 
+			paddle.setMovement(Paddle.Movement.NONE);
+			break;
+		}
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
