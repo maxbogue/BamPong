@@ -83,4 +83,34 @@ public class ChannelHelper {
 				throw new IOException("Socket closed early.");
 		}
 	}
+	
+	/** Adds a string to a buffer.
+	 * 
+	 * Encodes the string in the format that getString expects.
+	 * 
+	 * @return false if the string could not fit in the buffer.
+	 */
+	public static boolean putString(ByteBuffer b, String s) {
+		ByteBuffer e = utf8.encode(s);
+		if (b.remaining() < e.limit() + 2)
+			return false;
+		b.putShort((short) e.limit());
+		b.put(e);
+		return true;
+	}
+	
+	/** Adds an encoded string to a buffer.
+	 * 
+	 * Encodes the string in the format that getString expects.
+	 * This is suitable for sending buffers encoded by utf8.encode.
+	 * 
+	 * @return false if the string could not fit in the buffer.
+	 */
+	public static boolean putString(ByteBuffer b, ByteBuffer s) {
+		if (b.remaining() < s.limit() + 2)
+			return false;
+		b.putShort((short) s.limit());
+		b.put(s);
+		return true;
+	}
 }

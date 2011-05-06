@@ -186,8 +186,7 @@ public class PeerCommunication {
 		ByteBuffer name = utf8.encode(me.getName());
 		message = ByteBuffer.allocateDirect(name.limit() + 6);
 		message.putInt(me.getId());
-		message.putShort((short) name.limit());
-		message.put(name);
+		ChannelHelper.putString(message, name);
 		message.flip();
 		
 		// Send message
@@ -220,8 +219,7 @@ public class PeerCommunication {
 		ByteBuffer msg  = utf8.encode(message);
 		ByteBuffer buff = ByteBuffer.allocateDirect(msg.limit() + 3);
 		buff.put(MSG_DEBUG);
-		buff.putShort((short) msg.limit());
-		buff.put(msg);
+		ChannelHelper.putString(buff, msg);
 		buff.flip();
 		for ( SocketChannel c : peers.keySet() ) {
 			ChannelHelper.sendAll(c, buff);
