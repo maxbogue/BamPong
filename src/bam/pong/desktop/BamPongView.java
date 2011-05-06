@@ -1,18 +1,17 @@
-package bam.pong;
+package bam.pong.desktop;
 
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
+
 
 /**
  * The main window of BamPong.
  * 
  * @author Max Bogue
  */
+@SuppressWarnings("serial")
 public class BamPongView extends JFrame {
 
-	/** Used for serialization. */
-	private static final long serialVersionUID = -7382341800985464596L;
-	
 	/** The game field component. */
 	private GameField field;
 	

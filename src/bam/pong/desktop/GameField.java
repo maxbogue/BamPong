@@ -1,11 +1,15 @@
-package bam.pong;
+package bam.pong.desktop;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.util.Collection;
+import java.util.Set;
 
 import javax.swing.JComponent;
+
+import bam.pong.Ball;
+import bam.pong.EngineListener;
+import bam.pong.Paddle;
 
 /**
  * Represents the game field using Swing.
@@ -13,15 +17,17 @@ import javax.swing.JComponent;
  * @author Brian
  * @author Max
  */
+@SuppressWarnings("serial")
 public class GameField extends JComponent implements EngineListener {
 
-	/** For serialization (via JComponent) */
-	private static final long serialVersionUID = -1198765485813951172L;
-
-	private Collection<Ball> balls = null;
+	private Set<Ball> balls;
+	private Paddle paddle;
 	
 	/** Constructor. It constructs. */
-	public GameField() {}
+	public GameField(Set<Ball> balls, Paddle paddle) {
+		this.balls = balls;
+		this.paddle = paddle;
+	}
 
 	/** Draw the ball. */
 	@Override
@@ -31,13 +37,13 @@ public class GameField extends JComponent implements EngineListener {
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, // Anti-alias!
 		        RenderingHints.VALUE_ANTIALIAS_ON);
 		for ( Ball b : balls ) {
-			g2.fillOval((int)b.x, (int)b.y - BamPong.BALL_SIZE, BamPong.BALL_SIZE, BamPong.BALL_SIZE);
+			g2.fillOval((int)b.x, (int)b.y - b.D, b.D, b.D);
 		}
+		g2.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 	}
 
 	@Override
-	public void ballsUpdated(Collection<Ball> balls) {
-		this.balls = balls;
+	public void fieldUpdated() {
 		repaint();
 	}
 
@@ -46,5 +52,8 @@ public class GameField extends JComponent implements EngineListener {
 
 	@Override
 	public void ballDropped(Ball b) {}
+
+	@Override
+	public void ballAdded(Ball b) {}
 
 }

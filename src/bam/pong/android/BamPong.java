@@ -4,6 +4,9 @@ package bam.pong.android;
 
 //import bam.pong.Engine;
 
+import bam.pong.Ball;
+import bam.pong.Engine;
+import bam.pong.Paddle;
 import android.app.Activity;
 
 import android.view.KeyEvent;
@@ -17,73 +20,94 @@ import android.view.View.OnTouchListener;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 
-public class BamPong extends Activity implements  OnKeyListener, OnTouchListener , OnClickListener {
+public class BamPong extends Activity implements OnTouchListener {
 
-	// private Engine En;
-
+	/** Diameter of the balls in pixels. */
+	public static final int D = 15;
+	
 	private GameField gf;
-
+	private Engine engine;
+	private Paddle paddle;
+	
 	public void onCreate(Bundle state)
 	{
 		super.onCreate(state);
 
+		System.err.println("test");
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		DisplayMetrics display = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(display);
 
-		//Height of display in pixels
-		int ht = display.heightPixels;
-
-
-		//Width of Display in pixels
-		int wdt = display.widthPixels;
-
-		//En=new Engine(Width,Height);        
+		// Width and height of display in pixels.
+		int w = display.widthPixels;
+		int h = display.heightPixels;
+		
+		int pw = 80; // Paddle width.
+		int ph = 25; // Paddle height.
+		
+		paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 30);
+		
+		engine = new Engine(w, h, paddle);        
 
 		//New gamefield object
-		gf = new GameField(this, wdt, ht);
-
-		gf.setOnClickListener(this);
+		gf = new GameField(this, engine.getBalls(), paddle);
 
 		gf.setOnTouchListener(this);
 
 		setContentView(gf);
+		
+		Ball bs[] = {
+				new Ball(50, 25, 200, 40, D),
+				new Ball(50, 75, -367, 100, D),
+				new Ball(25, 25, 283, -200, D),
+				new Ball(25, 25, 193, -20, D),
+				new Ball(25, 25, 90, -40, D),
+			};
+		for( Ball b : bs ) engine.addBall(b);
+		engine.start();
 	}
 
-	public boolean onKey(View v, int Code, KeyEvent e) {
-		gf.en.moveLeft();
-		setContentView(gf);
-		return false;
-	}
-
-	public boolean onKeyDown(int Code, KeyEvent e) {
-		switch(Code) {
-		//Left movement of arrow key
-		case KeyEvent.KEYCODE_DPAD_LEFT : 
-			gf.en.moveLeft();
+	public boolean onKeyDown(int k, KeyEvent e) {
+		switch(k) {
+		case KeyEvent.KEYCODE_DPAD_LEFT: 
+			paddle.setMovement(Paddle.Movement.LEFT);
 			break;
-			//Right movement of the arrow key
-		case KeyEvent.KEYCODE_DPAD_RIGHT : 
-			gf.en.moveRight();
+		case KeyEvent.KEYCODE_DPAD_RIGHT: 
+			paddle.setMovement(Paddle.Movement.RIGHT);
 			break;
 		}
+		return true;
+	}
 
-		setContentView(gf);
+	public boolean onKeyUp(int k, KeyEvent e) {
+		switch(k) {
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+		case KeyEvent.KEYCODE_DPAD_RIGHT: 
+			paddle.setMovement(Paddle.Movement.NONE);
+			break;
+		}
 		return true;
 	}
 
 	public boolean onTouch(View v,MotionEvent event) {  
-		float x = event.getX();
-		float y = event.getY();
-		gf.en.paddleTouched(x,y);
-
+		if (event.getAction() == MotionEvent.ACTION_UP) {
+			paddle.setMovement(Paddle.Movement.NONE);
+		} else {
+			int x = (int) event.getX();
+			if (x < paddle.x + paddle.w / 2) {
+				paddle.setMovement(Paddle.Movement.LEFT);
+			} else {
+				paddle.setMovement(Paddle.Movement.RIGHT);
+			}
+		}
 		return true;
 	}
 
 
 	public void onClick(View v) {
-		gf.en.moveLeft();
-		setContentView(gf);
+//		gf.en.moveLeft();
+//		setContentView(gf);
 	}
+
 }

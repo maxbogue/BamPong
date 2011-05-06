@@ -3,29 +3,26 @@ package bam.pong;
 /**
  * Represents a ball.
  * 
- * @author Max
- * @author Brian
+ * @author Max Bogue
+ * @author Brian Gernhardt
  */
 public class Ball {
 
 	/** Current location of the ball. */
-	double x, y;
+	public double x, y;
 
 	/** Movement vector in pixels/second. */
-	double dx, dy;
+	public double dx, dy;
 
-	public Ball(double x, double y, double dx, double dy) {
+	/** Ball diameter in pixels. */
+	public final int D;
+
+	public Ball(double x, double y, double dx, double dy, int D) {
 		this.x = x;
 		this.y = y;
 		this.dx = dx;
 		this.dy = dy;
+		this.D = D;
 	}
 
-	public Ball(double x, double y) {
-		this(x, y, 0, 0);
-	}
-
-	public Ball() {
-		this(0, 0, 0, 0);
-	}
 }
