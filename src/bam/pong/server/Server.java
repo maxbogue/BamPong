@@ -1,12 +1,8 @@
 package bam.pong.server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
-import java.nio.channels.Channels;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -14,10 +10,10 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import bam.pong.ChannelHelper;
 
 /**
  * Server class.  Handles all game setup for clients.
@@ -52,20 +48,22 @@ public class Server {
 	public void run() throws IOException {
 		Set<SocketChannel> handShaken = new HashSet<SocketChannel>();
 		Selector selector = Selector.open();
+		incoming.configureBlocking(false);
 		incoming.register( selector, SelectionKey.OP_ACCEPT );
 		while ( incoming.isOpen() || !clients.isEmpty() || !handShaken.isEmpty() ) {
 			try {
 				// wait on selector
-				selector.select(1000);
+				selector.select(10000);
 				
 				// Handle all ready channels
-				for (SelectionKey k : selector.selectedKeys()) {
+				Set<SelectionKey> selected = selector.selectedKeys();
+				for (SelectionKey k : selected) {
+					selected.remove(k);
 					Channel c = k.channel();
 					
 					if ( c == incoming ) {
 						SocketChannel sc = incoming.accept();
-						ByteBuffer bb = ByteBuffer.allocateDirect(1024);
-						sc.read(bb);
+						ByteBuffer bb = ChannelHelper.readBytes(sc, 4);
 						if (utf8.decode(bb).toString().equals("bam?")) {
 							sc.write(utf8.encode("BAM!"));
 							handShaken.add(sc);
@@ -108,21 +106,38 @@ public class Server {
 	}
 
 	public void processClientMessage(SocketChannel c) throws IOException {
-		DataInputStream dis = new DataInputStream(Channels.newInputStream(c));
-		DataOutputStream dos = new DataOutputStream(Channels.newOutputStream(c));
-		byte k = dis.readByte();
+		byte k = ChannelHelper.getByte(c);
+		ByteBuffer b;
 		switch (k) {
 		case LIST_GAMES:
-			dos.writeInt(games.size());
-			for (Game g : games.values()) dos.writeUTF(g.name);
+			b = ByteBuffer.allocateDirect(1024);
+			b.putInt(games.size());
+			for (Game g : games.values()) {
+				if (!ChannelHelper.putString(b,g.name)) {
+					// Filled buffer, send what we have.
+					b.flip();
+					ChannelHelper.sendAll(c, b);
+					b.clear();
+
+					// Check to see if the name is too big for the buffer
+					ByteBuffer e = utf8.encode(g.name);
+					if( b.remaining() < e.limit() + 2)  // If so, reallocate
+						b = ByteBuffer.allocateDirect(e.limit() + 2);
+					
+					// Put the string into the new buffer.  (must fit)
+					ChannelHelper.putString(b, e);
+				}
+			}
+			ChannelHelper.sendAll(c, b);
 			break;
 		case CREATE_GAME:
-			String name = dis.readUTF();
+			b = ByteBuffer.allocateDirect(1);
+			String name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				dos.writeBoolean(false);
+				b.put((byte) 0); // False = NAK
 			} else {
 				games.put(name, new Game(name, clients.get(c)));
-				dos.writeBoolean(true);
+				b.put((byte) 1); // OK
 			}
 			break;
 		case CANCEL_GAME:
@@ -136,9 +151,8 @@ public class Server {
 	}
 	
 	public Client makeClient(SocketChannel c) throws IOException {
-		DataInputStream s = new DataInputStream(Channels.newInputStream(c));
-		String name = s.readUTF();
-		int port = s.readInt();
+		String name = ChannelHelper.getString(c);
+		int port = ChannelHelper.getInt(c);
 		return new Client(name, port, c);
 	}
 	
