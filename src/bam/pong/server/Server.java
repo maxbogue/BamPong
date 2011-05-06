@@ -85,6 +85,8 @@ public class Server {
 						processClientMessage((SocketChannel) c);
 					} else {
 						System.err.println( "Tried to process unknown socket." );
+						k.cancel();
+						c.close();
 					}
 				}
 				
