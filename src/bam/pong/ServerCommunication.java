@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import bam.pong.server.Server;
@@ -82,17 +83,19 @@ public class ServerCommunication {
 		public void run() {
 			while (server.isOpen()) {
 				try {
-					int ready = selector.select(10000);
+					selector.select(10000);
 					
-					if ( ready > 0 ) {
-						selector.selectedKeys().clear(); // Handling message
-						handleMessage();
-					} else {
-						// Got woke up for reading, so send all messages
-						while(!outbox.isEmpty()) {
-							ByteBuffer b = outbox.remove();
-							ChannelHelper.sendAll(server, b);
-						}
+					Set<SelectionKey> selected = selector.selectedKeys();
+					for ( SelectionKey k : selected ) {
+						selected.remove(k);
+						
+						if(k.isReadable())
+							handleMessage();
+					}
+
+					while(!outbox.isEmpty()) {
+						ByteBuffer b = outbox.remove();
+						ChannelHelper.sendAll(server, b);
 					}
 				} catch (IOException e) {
 					// TODO Something better?
