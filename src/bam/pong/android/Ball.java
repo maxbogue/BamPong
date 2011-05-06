@@ -9,7 +9,6 @@ package bam.pong.android;
 
 
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.OvalShape;
 import android.view.View;

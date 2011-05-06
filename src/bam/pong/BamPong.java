@@ -25,7 +25,7 @@ public class BamPong {
 		f.setPreferredSize(new Dimension(w, h));
 		e.addListener(f);
 		
-		BamPongView bam = new BamPongView(f);
+		new BamPongView(f);
 		
 		Ball bs[] = {
 				new Ball(50, 25, 200, 40),
