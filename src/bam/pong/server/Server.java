@@ -104,19 +104,19 @@ public class Server {
 		byte k = ChannelHelper.getByte(c);
 		ByteBuffer b;
 		switch (k) {
-		case LIST_GAMES:
+		case Constants.LIST_GAMES:
 			b = ByteBuffer.allocateDirect(1024);
-			b.put(LIST_GAMES);
+			b.put(Constants.LIST_GAMES);
 			b.putInt(games.size());
 			for (Game g : games.values()) {
-				if (!ChannelHelper.putString(b,g.name)) {
+				if (!ChannelHelper.putString(b,g.getName())) {
 					// Filled buffer, send what we have.
 					b.flip();
 					ChannelHelper.sendAll(c, b);
 					b.clear();
 
 					// Check to see if the name is too big for the buffer
-					ByteBuffer e = utf8.encode(g.name);
+					ByteBuffer e = utf8.encode(g.getName());
 					if( b.remaining() < e.limit() + 2)  // If so, reallocate
 						b = ByteBuffer.allocateDirect(e.limit() + 2);
 					
@@ -127,10 +127,11 @@ public class Server {
 			b.flip();
 			ChannelHelper.sendAll(c, b);
 			break;
-		case CREATE_GAME:
+		case Constants.CREATE_GAME:
 			b = ByteBuffer.allocateDirect(2);
-			b.put(CREATE_GAME);
+			b.put(Constants.CREATE_GAME);
 			String name = ChannelHelper.getString(c);
+		}
 //		DataInputStream dis = new DataInputStream(Channels.newInputStream(c));
 //		DataOutputStream dos = new DataOutputStream(Channels.newOutputStream(c));
 //		byte k = dis.readByte();
@@ -143,47 +144,47 @@ public class Server {
 //			break;
 //		case Constants.CREATE_GAME:
 //			name = dis.readUTF();
-			if (games.containsKey(name)) {
-				b.put((byte) 0); // False = NAK
-			} else {
-				games.put(name, new Game(name, clients.get(c)));
-				b.put((byte) 1); // OK
-			}
-			b.flip();
-			ChannelHelper.sendAll(c, b);
-			break;
-		case Constants.CANCEL_GAME:
-			name = dis.readUTF();
-			if (games.containsKey(name) && !games.get(name).hasBegun()) {
-				dos.writeBoolean(true);
-				games.get(name).cancel();
-			} else {
-				dos.writeBoolean(false);
-			}
-			break;
-		case Constants.JOIN_GAME:
-			name = dis.readUTF();
-			if (games.containsKey(name)) {
-				dos.writeBoolean(true);
-				games.get(name).addPlayer(clients.get(c));
-			} else {
-				dos.writeBoolean(false);
-			}
-			break;
-		case Constants.START_GAME:
-			name = dis.readUTF();
-			if (games.containsKey(name)) {
-				dos.writeBoolean(true);
-				games.get(name).startGame();
-			} else {
-				dos.writeBoolean(false);
-			}
-			break;
-		default:
-			System.err.println("Invalid key byte: " + k);
-			break;
-		}
-		dos.flush();
+//			if (games.containsKey(name)) {
+//				b.put((byte) 0); // False = NAK
+//			} else {
+//				games.put(name, new Game(name, clients.get(c)));
+//				b.put((byte) 1); // OK
+//			}
+//			b.flip();
+//			ChannelHelper.sendAll(c, b);
+//			break;
+//		case Constants.CANCEL_GAME:
+//			name = dis.readUTF();
+//			if (games.containsKey(name) && !games.get(name).hasBegun()) {
+//				dos.writeBoolean(true);
+//				games.get(name).cancel();
+//			} else {
+//				dos.writeBoolean(false);
+//			}
+//			break;
+//		case Constants.JOIN_GAME:
+//			name = dis.readUTF();
+//			if (games.containsKey(name)) {
+//				dos.writeBoolean(true);
+//				games.get(name).addPlayer(clients.get(c));
+//			} else {
+//				dos.writeBoolean(false);
+//			}
+//			break;
+//		case Constants.START_GAME:
+//			name = dis.readUTF();
+//			if (games.containsKey(name)) {
+//				dos.writeBoolean(true);
+//				games.get(name).startGame();
+//			} else {
+//				dos.writeBoolean(false);
+//			}
+//			break;
+//		default:
+//			System.err.println("Invalid key byte: " + k);
+//			break;
+//		}
+//		dos.flush();
 	}
 	
 	public Client makeClient(SocketChannel c) throws IOException {
