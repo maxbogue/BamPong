@@ -3,9 +3,10 @@
       package="bam.pong.android"
       android:versionCode="1"
       android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8"></uses-sdk>
 
 
-    <application android:icon="@drawable/icon" android:label="@string/app_name">
+    <application android:icon="@drawable/icon" android:label="BAM! Pong">
         <activity android:name=".BamPong"
                   android:label="@string/app_name">
             <intent-filter>
