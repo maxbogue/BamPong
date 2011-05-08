@@ -105,12 +105,6 @@ public class ServerCommunication {
 		}
 	};
 	
-	private static final byte LIST_GAMES = 1;
-	private static final byte CREATE_GAME = 2;
-	private static final byte CANCEL_GAME = 3;
-	private static final byte JOIN_GAME = 4;
-	private static final byte START_GAME = 5;
-	
 	private static List<String> games = new ArrayList<String>(); // For LIST_GAMES
 	private static byte create[] = new byte[1]; // for CREATE_GAME
 	
@@ -125,7 +119,7 @@ public class ServerCommunication {
 //		ByteBuffer b;
 		
 		switch(type) {
-		case LIST_GAMES:
+		case Constants.LIST_GAMES:
 			int len = ChannelHelper.getInt(server);
 			games.clear();
 
@@ -135,13 +129,16 @@ public class ServerCommunication {
 			}
 			wakeUp(games); // Wake-up whoever asked for the games
 			break;
-		case CREATE_GAME:
+		case Constants.CREATE_GAME:
 			create[0] = ChannelHelper.getByte(server);
 			wakeUp(create);
 			break;
-		case CANCEL_GAME:
-		case JOIN_GAME:
-		case START_GAME:
+		case Constants.CANCEL_GAME:
+		case Constants.JOIN_GAME:
+		case Constants.START_GAME:
+			break;
+		default:
+			System.err.println("Unkown message type "+type);
 		}
 	}
 	
@@ -157,7 +154,7 @@ public class ServerCommunication {
 	
 	/** Ask the server for the game list */
 	public String[] getGames() {
-		sendMessage(LIST_GAMES);
+		sendMessage(Constants.LIST_GAMES);
 		waitOn(games);
 		return games.toArray(new String[games.size()]);
 	}
