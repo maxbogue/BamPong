@@ -128,7 +128,7 @@ public class ChannelHelper {
 	 * 
 	 * Generally used for a message type and a reply value.
 	 */
-	public static void putBoolean(SocketChannel c, byte k, boolean r) throws IOException {
+	public static void sendBoolean(SocketChannel c, byte k, boolean r) throws IOException {
 		ByteBuffer b = ByteBuffer.allocateDirect(2);
 		b.put(k);
 		b.put((byte) (r ? 1 : 0));

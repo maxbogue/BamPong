@@ -188,37 +188,37 @@ public class Server {
 		case Constants.CREATE_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				ChannelHelper.putBoolean(c, k, false);
+				ChannelHelper.sendBoolean(c, k, false);
 			} else {
 				games.put(name, new Game(name, clients.get(c)));
-				ChannelHelper.putBoolean(c, k, true);
+				ChannelHelper.sendBoolean(c, k, true);
 			}
 			break;
 		case Constants.CANCEL_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name) && !games.get(name).hasBegun()) {
-				ChannelHelper.putBoolean(c, k, true);
+				ChannelHelper.sendBoolean(c, k, true);
 				games.get(name).cancel();
 			} else {
-				ChannelHelper.putBoolean(c, k, false);
+				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		case Constants.JOIN_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				ChannelHelper.putBoolean(c, k, true);
+				ChannelHelper.sendBoolean(c, k, true);
 				games.get(name).addPlayer(clients.get(c));
 			} else {
-				ChannelHelper.putBoolean(c, k, false);
+				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		case Constants.START_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				ChannelHelper.putBoolean(c, k, true);
+				ChannelHelper.sendBoolean(c, k, true);
 				games.get(name).startGame();
 			} else {
-				ChannelHelper.putBoolean(c, k, false);
+				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		default:
