@@ -106,7 +106,8 @@ public class ServerCommunication {
 	};
 	
 	private static List<String> games = new ArrayList<String>(); // For LIST_GAMES
-	private static byte create[] = new byte[1]; // for CREATE_GAME
+	private static byte create[] = new byte[1];                  // for CREATE_GAME
+	private static byte cancel[] = new byte[1];                  // for CANCEL_GAME
 	
 	private void wakeUp(Object o) {
 		synchronized (o) {
@@ -134,6 +135,9 @@ public class ServerCommunication {
 			wakeUp(create);
 			break;
 		case Constants.CANCEL_GAME:
+			cancel[0] = ChannelHelper.getByte(server);
+			wakeUp(cancel);
+			break;
 		case Constants.JOIN_GAME:
 		case Constants.START_GAME:
 			break;
@@ -167,6 +171,15 @@ public class ServerCommunication {
 		waitOn(create);
 		
 		return create[0] != 0;
+	}
+	
+	/** Ask server to cancel a game */
+	public boolean cancelGame(String name) throws IOException {
+		ChannelHelper.sendString(server, Constants.CANCEL_GAME, name);
+		
+		waitOn(cancel);
+		
+		return cancel[0] != 0;
 	}
 	
 	public static void main(String args[]) {
