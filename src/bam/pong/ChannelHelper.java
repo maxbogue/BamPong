@@ -136,4 +136,14 @@ public class ChannelHelper {
 		
 		sendAll(c, b);
 	}
+	
+	/** Send a byte and a string to a channel. */
+	public static void sendString(SocketChannel c, byte k, String s) throws IOException {
+		ByteBuffer e = utf8.encode(s);
+		ByteBuffer b = ByteBuffer.allocateDirect(e.limit() + 3);
+		b.put(k);
+		putString(b, e);
+		
+		sendAll(c, b);
+	}
 }

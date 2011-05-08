@@ -160,14 +160,8 @@ public class ServerCommunication {
 	}
 	
 	/** Ask the server to create a game */
-	public boolean createGame(String name) {
-		// Construct message
-		ByteBuffer e = utf8.encode(name);
-		ByteBuffer b = ByteBuffer.allocateDirect(e.limit() + 3); // type(1) + size(2) + string
-		b.put(CREATE_GAME);
-		ChannelHelper.putString(b, e);
-		b.flip();
-		sendMessage(b);
+	public boolean createGame(String name) throws IOException {
+		ChannelHelper.sendString(server, Constants.CREATE_GAME, name);
 		
 		// Wait for result
 		waitOn(create);
