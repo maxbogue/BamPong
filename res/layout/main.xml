@@ -1,12 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<TextView  
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/hello"
-    />
-</LinearLayout>
+<AbsoluteLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:id="@+id/widget0"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+>
+
+
+
+
+<Button
+android:id="@+id/widget27"
+android:layout_width="240px"
+android:layout_height="100px"
+android:text="CreateGame"
+android:layout_x="80px"
+android:layout_y="100px"
+>
+</Button>
+
+<Button
+android:id="@+id/widget29"
+android:layout_width="240px"
+android:layout_height="100px"
+android:text="CancelGame"
+android:layout_x="80px"
+android:layout_y="200px"
+>
+</Button>
+<Button
+android:id="@+id/widget30"
+android:layout_width="240px"
+android:layout_height="100px"
+android:text="JoinGame"
+android:layout_x="80px"
+android:layout_y="300px"
+>
+</Button>
+
+
+
+
+
+
+
+<TextView android:textColor="#00FF00" android:typeface="monospace" android:textSize="25sp" android:text="WELCOME TO BAM PONG" android:layout_width="fill_parent" android:layout_height="100px" android:id="@+id/TextView01" android:layout_x="2dip" android:layout_y="4dip"></TextView>
+<Button android:id="@+id/widget31" android:text="StartGame" android:layout_width="240px" android:layout_height="100px" android:layout_x="80px" android:layout_y="400px"></Button>
+</AbsoluteLayout>

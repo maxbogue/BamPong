@@ -6,14 +6,14 @@
     <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="8"></uses-sdk>
 
 
-    <application android:icon="@drawable/icon" android:label="BAM! Pong">
-        <activity android:name=".BamPong"
-                  android:label="@string/app_name">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+    <application android:icon="@drawable/icon" android:label="BAM! Pong" android:debuggable="true">
+        
 
-    </application>
+    <activity android:name=".GUI" android:label="@string/app_name" android:screenOrientation="portrait"><intent-filter><action android:name="android.intent.action.MAIN"></action>
+<category android:name="android.intent.category.LAUNCHER"></category>
+</intent-filter>
+
+</activity>
+<activity android:name=".BamPong"></activity>
+</application>
 </manifest>
