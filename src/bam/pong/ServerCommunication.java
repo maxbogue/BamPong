@@ -105,9 +105,11 @@ public class ServerCommunication {
 		}
 	};
 	
-	private static List<String> games = new ArrayList<String>(); // For LIST_GAMES
-	private static byte create[] = new byte[1];                  // for CREATE_GAME
-	private static byte cancel[] = new byte[1];                  // for CANCEL_GAME
+	private static List<String> games = new ArrayList<String>(); // LIST_GAMES
+	private static byte create[] = new byte[1];                  // CREATE_GAME
+	private static byte cancel[] = new byte[1];                  // CANCEL_GAME
+	private static byte join[]   = new byte[1];                  // JOIN_GAME
+	private static byte start[]  = new byte[1];                  // START_GAME
 	
 	private void wakeUp(Object o) {
 		synchronized (o) {
@@ -139,7 +141,12 @@ public class ServerCommunication {
 			wakeUp(cancel);
 			break;
 		case Constants.JOIN_GAME:
+			join[0] = ChannelHelper.getByte(server);
+			wakeUp(join);
+			break;
 		case Constants.START_GAME:
+			start[0] = ChannelHelper.getByte(server);
+			wakeUp(start);
 			break;
 		default:
 			System.err.println("Unkown message type "+type);
@@ -180,6 +187,24 @@ public class ServerCommunication {
 		waitOn(cancel);
 		
 		return cancel[0] != 0;
+	}
+	
+	/** Ask server to join a game */
+	public boolean joinGame(String name) throws IOException {
+		ChannelHelper.sendString(server, Constants.JOIN_GAME, name);
+		
+		waitOn(join);
+		
+		return join[0] != 0;
+	}
+	
+	/** Ask server to start a game */
+	public boolean startGame(String name) throws IOException {
+		ChannelHelper.sendString(server, Constants.START_GAME, name);
+		
+		waitOn(start);
+		
+		return start[0] != 0;
 	}
 	
 	public static void main(String args[]) {
