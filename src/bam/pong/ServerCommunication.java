@@ -18,18 +18,15 @@ import bam.pong.server.Server;
 
 public class ServerCommunication {
 	private SocketChannel server;     // socket to the server
-	private Peer me;                  // Our local peer information
+//	private Peer me;                  // Our local peer information
 	private Selector selector;        // wait on this for server messages
 	private Queue<ByteBuffer> outbox; // messages to send
 	
 	private static final Charset utf8 = Charset.forName("UTF-8");
 	
 	/** Connect to a server at a given address */
-	public ServerCommunication(Peer myself, InetSocketAddress host)
+	public ServerCommunication(String nickname, int incomingPort, InetSocketAddress host)
 	throws IOException {
-		me = myself;
-		if (me.getSocketAddr() == null)
-			throw new IllegalArgumentException("Need a local peer port to connect to server");
 
 		server = SocketChannel.open(host);
 		
@@ -42,10 +39,10 @@ public class ServerCommunication {
 		}
 		
 		// Send my information to server
-		ByteBuffer name = utf8.encode(me.getName());
+		ByteBuffer name = utf8.encode(nickname);
 		ByteBuffer msg  = ByteBuffer.allocateDirect(name.limit() + 6); // string + size(2) + port(4)
 		ChannelHelper.putString(msg, name);
-		msg.putInt(me.getSocketAddr().getPort());
+		msg.putInt(incomingPort);
 		msg.flip();
 		ChannelHelper.sendAll(server, msg);
 		
@@ -60,10 +57,9 @@ public class ServerCommunication {
 	}
 	
 	/** Connect to a server at a given host and port */
-	public ServerCommunication(Peer me, InetAddress host, int port) throws IOException {
-		this(me, new InetSocketAddress(host, port));
+	public ServerCommunication(String nickname, int incomingPort, InetAddress host, int port) throws IOException {
+		this(nickname, incomingPort, new InetSocketAddress(host, port));
 	}
-
 	
 	// Queue a message to be sent by the communication thread
 	private void sendMessage(ByteBuffer message) {
@@ -224,8 +220,7 @@ public class ServerCommunication {
 			thread.start();
 			System.out.println("Server started...");
 
-			Peer me = new Peer(1, "p1", InetAddress.getLocalHost(), 1);
-			ServerCommunication sc = new ServerCommunication(me,
+			ServerCommunication sc = new ServerCommunication("p1", 1,
 					InetAddress.getLocalHost(), server.getPort());
 			System.out.println("Communicator started...");
 			
