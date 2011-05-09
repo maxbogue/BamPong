@@ -14,6 +14,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.swing.text.AbstractDocument.BranchElement;
 
 /**
  * Handles all peer-to-peer communications.
@@ -210,8 +213,153 @@ public class PeerCommunication {
 		sockets.put(peer, c);
 	}
 	
-	/** Initiate Paxos for new ball location.  */
-	public void sendBall(Ball b, Peer p) {
+	
+	// Paxos states
+	private static final byte NACK    = 0;
+	private static final byte PREPARE = 1;
+	private static final byte PROMISE = 2;
+	private static final byte REQUEST = 3;
+	private static final byte ACCEPT  = 4;
+	
+	// Ball ID -> Paxos State
+	//   State here shouldn't equal NACK. (Perhaps it means error?)
+	//   PREPARE = sent PREPARE, waiting for PROMISEs
+	//   PROMISE = sent PROMISE for current proposal
+	//   REQUEST = sent REQUEST, waiting for REQ
+	//   ACCEPT  = sent or received quorum of ACCEPT
+	
+	private class Paxos {
+		int  ball;
+		byte state;
+		int  proposal;
+		int  peer;
+		int  ack  = 0; // Number of good replies
+		int  nack = 0; // Number of bad  replies
+		
+		Paxos(int b) {
+			this(b, ACCEPT, 0, me.getId());
+		}
+		Paxos(int b, byte s, int pro, int p) {
+			ball = b;
+			state = s;
+			proposal = pro;
+			peer = p;
+		}
+		
+		void state(byte s) {
+			state = s;
+			ack  = 0;
+			nack = 0;
+		}
+		
+		boolean quorum() {
+			int quorum = peers.size() / 2 + 1;
+			return ack >= quorum || nack >= quorum;
+		}
+	}
+
+	private Map<Integer, Paxos> ball_state     = new ConcurrentHashMap<Integer, Paxos>();
+
+	/** Initiate Paxos for new ball location. */
+	public void sendBall(Ball b, Peer p) throws IOException {
+		// Initialize our state
+		int ball = b.id;
+		Paxos state = ball_state.get(ball);
+		if(state == null) {
+			state = new Paxos(ball, REQUEST, 1, p.getId());
+		} else {
+			state.state( REQUEST );
+			state.proposal++;
+			state.peer = p.getId();
+		}
+		
+		// Send a message
+		sendBallMessage(null, ball, REQUEST);
+	}
+	
+	// Called to send a ball message
+	private void sendBallMessage(SocketChannel c, int ball, byte type) {
+		if( type == PROMISE && c == null ) // Other message types are broadcast
+			throw new IllegalArgumentException("Need a peer to send a promise to");
+		
+		Paxos state = ball_state.get(ball);
+		if(state == null)
+			throw new IllegalArgumentException("Don't know about ball " + ball);
+
+		// Max reply: type(1), ball(4), state(1), proposal(4), curr_prop(4), curr_peer(4)
+		ByteBuffer msg = ByteBuffer.allocateDirect(18);
+		msg.put(MSG_BALL);
+		msg.putInt(ball);
+		
+		// TODO: finish
+	}
+	
+	// Called to update Paxos state from a message
+	private void processBallMessage(SocketChannel c) throws IOException {
+		int  peer       = peers.get(c).getId();
+		int  ball       = ChannelHelper.getInt(c);
+		byte state      = ChannelHelper.getByte(c);
+		int  proposal   = ChannelHelper.getInt(c);
+		
+		Paxos paxos = ball_state.get(ball);
+		if(paxos == null) {
+			// New ball
+			paxos = new Paxos(ball);
+			ball_state.put(ball, paxos);
+		}
+		
+		// Paxos state machine
+		byte reply = NACK;
+		switch(state) {
+		case PREPARE:
+			if(proposal < paxos.proposal)
+				break; // Refuse
+			
+			paxos.state( reply = PROMISE );
+			paxos.peer  = peer;
+			break;
+		case PROMISE:
+			if(paxos.state != PREPARE || paxos.proposal != proposal)
+				return; // Ignore promises we're not expecting
+			
+			paxos.ack++; // Good response
+			if(paxos.quorum()) {
+				// We have a quorum!
+				paxos.state( reply = REQUEST );
+				break;
+			}
+			return; // Wait for more PROMISE/NACK
+		case REQUEST:
+			if(proposal < paxos.proposal || peer != paxos.peer)
+				break; // Refuse
+
+			paxos.state( reply = ACCEPT );
+			paxos.peer  = peer;
+			// TODO, I think
+			break;
+		case ACCEPT:
+			// TODO
+			break;
+		case NACK:
+			if( proposal != paxos.proposal )
+				return; // Ignore nacks for non-current proposal
+			// TODO
+			break;
+		default:
+			System.err.println("Unknown Paxos State: " + state);
+			return;
+		}
+		
+		sendBallMessage(c, ball, reply);
+	}
+	
+	// Send a message to all peers.
+	private void broadcast(ByteBuffer buff) throws IOException {
+		for ( SocketChannel c : peers.keySet() ) {
+			buff.mark();
+			ChannelHelper.sendAll(c, buff);
+			buff.reset();
+		}
 	}
 	
 	/** Send a debug message to all connected peers. */
@@ -221,14 +369,13 @@ public class PeerCommunication {
 		buff.put(MSG_DEBUG);
 		ChannelHelper.putString(buff, msg);
 		buff.flip();
-		for ( SocketChannel c : peers.keySet() ) {
-			ChannelHelper.sendAll(c, buff);
-			buff.rewind();
-		}
+		
+		broadcast(buff);
 	}
 	
 	//////// List of message types
 	private static final byte MSG_DEBUG = 0;
+	private static final byte MSG_BALL  = 1;
 	
 	// Called when an established peer sends us a message
 	private void processPeerMessage(SocketChannel c) throws IOException {
@@ -244,8 +391,9 @@ public class PeerCommunication {
 		case MSG_DEBUG:
 			log(peer.getName()+": "+ChannelHelper.getString(c));
 			break;
-//		Pass ball
-//			Ball data; paxos confirmation that passer has ball to pass?
+		case MSG_BALL:
+			processBallMessage(c);
+			break;
 //		Dropped ball
 //			Informative to all peers & server
 //			(Maybe implement as passing ball to server?)
