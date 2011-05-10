@@ -7,7 +7,7 @@ import java.util.List;
  * 
  * @author Max Bogue
  */
-public class Client implements EngineListener, ViewListener {
+public class Client implements EngineListener, ViewListener, PeerListener {
 
 	// Width and height of gamefield and paddle.
 	public final int w, h, pw, ph;
@@ -17,12 +17,13 @@ public class Client implements EngineListener, ViewListener {
 	private Engine engine = null;
 	private Paddle paddle = null;
 	
-	public Client(int w, int h, int pw, int ph, ServerCommunication serverComm) {
+	public Client(int w, int h, int pw, int ph, ServerCommunication serverComm, PeerCommunication peerComm) {
 		this.w = w;
 		this.h = h;
 		this.pw = pw;
 		this.ph = ph;
 		this.serverComm = serverComm;
+		this.peerComm = peerComm;
 	}
 
 	//////////////////
@@ -67,6 +68,13 @@ public class Client implements EngineListener, ViewListener {
 
 	public void fieldUpdated() {}
 	public void ballAdded(Ball b) {}
+	
+	////////////////////
+	// EngineListener //
+	////////////////////
+	
+	public void newBall(int id) {}
+
 
 	///////////////
 	// Utilities //
