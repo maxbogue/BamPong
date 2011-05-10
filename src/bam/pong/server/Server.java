@@ -274,4 +274,12 @@ public class Server {
 		return new Client(++maxID, name, port, c);
 	}
 	
+	public static void main(String args[]) {
+		try {
+			Server server = new Server();
+			server.run();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
