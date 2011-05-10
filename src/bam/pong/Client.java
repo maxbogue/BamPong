@@ -29,7 +29,7 @@ public class Client implements EngineListener, ViewListener {
 	// ViewListener //
 	//////////////////
 
-	public List<Game> listGames() throws BamException {
+	public List<String> listGames() throws BamException {
 		return null;
 	}
 

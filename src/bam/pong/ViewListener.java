@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface ViewListener {
 
-	public List<Game> listGames() throws BamException;
+	public List<String> listGames() throws BamException;
 
 	public void createGame(String gameName) throws BamException;
 
