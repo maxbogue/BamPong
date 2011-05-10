@@ -59,6 +59,13 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 		} catch (IOException e) {
 			throw new BamException("Error talking to server");
 		}
+		
+		try {
+			for (Peer peer : game.peers.values() )
+				peerComm.connectToPeer(peer);
+		} catch (IOException e) {
+			throw new BamException("Error connecting to peers");
+		}
 	}
 
 	public void cancelGame() throws BamException {
