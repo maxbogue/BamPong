@@ -23,6 +23,8 @@ public class ServerCommunication {
 	private Queue<ByteBuffer> outbox; // messages to send
 	private int id;                   // ID from server
 	
+	private ServerListener listener = null; // Thing to notify on game start;
+	
 	private static final Charset utf8 = Charset.forName("UTF-8");
 	
 	/** Connect to a server at a given address */
@@ -58,6 +60,12 @@ public class ServerCommunication {
 		
 		// Start communications thread.
 		watcher.start();
+	}
+	
+	public ServerListener setListener(ServerListener listener) {
+		ServerListener old = listener;
+		this.listener = listener;
+		return old;
 	}
 	
 	/** Returns the ID the server gave us. */
@@ -169,8 +177,8 @@ public class ServerCommunication {
 			wakeUp(join);
 			break;
 		case Constants.START_GAME:
-			start[0] = ChannelHelper.getByte(server);
-			wakeUp(start);
+			if(listener != null)
+				listener.gameStarted();
 			break;
 		default:
 			System.err.println("Unkown message type "+type);
@@ -223,13 +231,12 @@ public class ServerCommunication {
 		return join[0];
 	}
 	
-	/** Ask server to start a game */
-	public boolean startGame(String name) throws IOException {
+	/** Ask server to start a game.
+	 * 
+	 * Asynchronous.  Notifies listener when game starts.
+	 */
+	public void startGame(String name) throws IOException {
 		ChannelHelper.sendString(server, Constants.START_GAME, name);
-		
-		waitOn(start);
-		
-		return start[0] != 0;
 	}
 	
 	public static void main(String args[]) {

@@ -253,12 +253,8 @@ public class Server {
 			break;
 		case Constants.START_GAME:
 			name = ChannelHelper.getString(c);
-			if (games.containsKey(name)) {
-				ChannelHelper.sendBoolean(c, k, true);
+			if(games.containsKey(name))
 				games.get(name).startGame();
-			} else {
-				ChannelHelper.sendBoolean(c, k, false);
-			}
 			break;
 		default:
 			System.err.println("Invalid key byte: " + k);

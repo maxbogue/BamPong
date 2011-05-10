@@ -11,7 +11,7 @@ import java.util.Set;
  * 
  * @author Max Bogue
  */
-public class Client implements EngineListener, ViewListener, PeerListener {
+public class Client implements EngineListener, ViewListener, PeerListener, ServerListener {
 
 	// Width and height of gamefield and paddle.
 	public final int w, h, pw, ph;
@@ -30,9 +30,6 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 		this.ph = ph;
 		this.serverComm = serverComm;
 		this.peerComm = peerComm;
-		
-		paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
-		engine = new Engine(w, h, paddle);
 	}
 
 	//////////////////
@@ -128,5 +125,15 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 	
 	public void newBall(int id) {
 		engine.addBall(new Ball(id, w/2, 0, 0, -40, 15));
+	}
+	
+	////////////////////
+	// ServerListener //
+	////////////////////
+	
+	public void gameStarted() {
+		paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
+		engine = new Engine(w, h, paddle);
+		engine.start();
 	}
 }

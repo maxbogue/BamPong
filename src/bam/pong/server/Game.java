@@ -1,6 +1,7 @@
 package bam.pong.server;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,7 +21,19 @@ public class Game {
 	}
 	
 	public void startGame() {
-		// TODO: Start the game
+		ByteBuffer b = ByteBuffer.allocate(1);
+		b.put(Constants.START_GAME);
+		b.flip();
+		
+		for( Client client : players ) {
+			SocketChannel c = client.getChannel();
+			try {
+				ChannelHelper.sendAll(c, b);
+			} catch (IOException e) {
+				// TODO
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public boolean cancel() {
