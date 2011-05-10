@@ -41,7 +41,8 @@ public class GUI extends Activity{
      final Button button4 = (Button) findViewById(R.id.widget30);
      button4.setOnClickListener(new View.OnClickListener() {
          public void onClick(View v) {
-             // Perform action on click
+        	 Intent myIntent = new Intent(v.getContext(), TestListActivities.class);
+             startActivity(myIntent);  
          }
      });
      

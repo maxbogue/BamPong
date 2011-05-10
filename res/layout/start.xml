@@ -6,31 +6,34 @@ android:layout_height="fill_parent"
 xmlns:android="http://schemas.android.com/apk/res/android"
 >
 
-<TextView android:textColor="#00FF00" android:text="ADD YOUR NAME and SERVERS NAME HERE" android:typeface="monospace" android:textSize="20sp"  android:layout_width="fill_parent" android:layout_height="100px" android:id="@+id/TextView01" android:layout_x="2dip" android:layout_y="4dip"></TextView>
+<TextView android:textColor="#00FF00" android:text="WELCOME TO BAMPONG" android:typeface="monospace" android:textSize="20sp"  android:layout_width="fill_parent" android:layout_height="100px" android:id="@+id/TextView01" android:layout_x="2dip" android:layout_y="4dip"></TextView>
 <EditText
 android:id="@+id/textA"
-android:layout_width="176px"
+android:layout_width="300px"
 android:layout_height="wrap_content"
-android:text=""
+android:text="YOUR NAME"
 android:textSize="18sp"
 android:layout_x="80px"
 android:layout_y="100px"
 >
 </EditText>
+
 <Button
 android:id="@+id/Connect"
-android:layout_width="215px"
-android:layout_height="wrap_content"
-android:text="Button"
-android:layout_x="80px"
-android:layout_y="300px"
+android:layout_width="400px"
+android:layout_height="400px"
+android:background="@drawable/bampong"
+android:text="Connect"
+android:textSize="25sp"
+android:layout_x="40px"
+android:layout_y="350px"
 >
 </Button>
 <EditText
 android:id="@+id/TextB"
-android:layout_width="179px"
+android:layout_width="300px"
 android:layout_height="wrap_content"
-android:text=""
+android:text="SERVERS NAME"
 android:textSize="18sp"
 android:layout_x="80px"
 android:layout_y="200px"
