@@ -58,11 +58,11 @@ public class BamPong extends Activity implements OnTouchListener {
 		setContentView(gf);
 		
 		Ball bs[] = {
-				new Ball(50, 25, 200, 75, D),
-				new Ball(50, 75, -367, 100, D),
-				new Ball(25, 25, 283, -200, D),
-				new Ball(25, 25, 193, -100, D),
-				new Ball(25, 25, 90, -75, D),
+				new Ball(1, 50, 25, 200, 75, D),
+				new Ball(2, 50, 75, -367, 100, D),
+				new Ball(3, 25, 25, 283, -200, D),
+				new Ball(4, 25, 25, 193, -100, D),
+				new Ball(5, 25, 25, 90, -75, D),
 			};
 		for( Ball b : bs ) engine.addBall(b);
 		engine.start();

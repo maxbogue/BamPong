@@ -136,6 +136,18 @@ public class PeerCommunication {
 		watcher.start();
 	}
 	
+	private PeerListener listener; // Thing to notify on events
+	
+	/** Set a new listener.
+	 * 
+	 * @return the previous listener (null if none)
+	 */
+	public PeerListener setListener(PeerListener listener) {
+		PeerListener old = this.listener;
+		this.listener = listener;
+		return old;
+	}
+
 	/** Returns the port this object is listening to for other peers. */
 	public int getPort() {
 		return incoming.socket().getLocalPort();
@@ -210,8 +222,17 @@ public class PeerCommunication {
 		sockets.put(peer, c);
 	}
 	
-	/** Initiate Paxos for new ball location.  */
-	public void sendBall(Ball b, Peer p) {
+	/** Send a ball to a peer. */
+	public void sendBall(Ball b, Peer p) throws IOException {
+		ByteBuffer msg = ByteBuffer.allocateDirect(5);
+		msg.put(MSG_BALL);
+		msg.putInt(b.id);
+		
+		SocketChannel sock = sockets.get(p);
+		if( sock == null )
+			throw new IllegalArgumentException("Not connected to peer");
+		
+		ChannelHelper.sendAll(sock, msg);
 	}
 	
 	/** Send a debug message to all connected peers. */
@@ -229,6 +250,7 @@ public class PeerCommunication {
 	
 	//////// List of message types
 	private static final byte MSG_DEBUG = 0;
+	private static final byte MSG_BALL  = 1;
 	
 	// Called when an established peer sends us a message
 	private void processPeerMessage(SocketChannel c) throws IOException {
@@ -244,8 +266,11 @@ public class PeerCommunication {
 		case MSG_DEBUG:
 			log(peer.getName()+": "+ChannelHelper.getString(c));
 			break;
-//		Pass ball
-//			Ball data; paxos confirmation that passer has ball to pass?
+		case MSG_BALL:
+			int id = ChannelHelper.getInt(c);
+			if (listener != null)
+				listener.newBall(id);
+			break;
 //		Dropped ball
 //			Informative to all peers & server
 //			(Maybe implement as passing ball to server?)
@@ -257,6 +282,8 @@ public class PeerCommunication {
 //			Ping/pong messages
 //		Server failure
 //			All peers, send choice of backup	
+		default:
+			System.err.println("Unknown peer message: " + type);
 		}
 	}
 	
