@@ -47,7 +47,7 @@ public class BamPongView extends JFrame {
 		
 		// Ball size must be subtracted here so the balls look like they hit the wall.
 		Engine e = new Engine(w, h, paddle);
-		GameField f = new GameField(e.getBalls(), paddle);
+		GameField f = new GameField();
 		f.setPreferredSize(new Dimension(w, h));
 		e.addListener(f);
 		

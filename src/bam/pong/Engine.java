@@ -52,7 +52,7 @@ public class Engine implements Runnable {
 	private void updateField() {
 		updatePaddlePosition();
 		updateBallPositions();
-		for (EngineListener el : listeners) el.fieldUpdated();
+		for (EngineListener el : listeners) el.fieldUpdated(balls, paddle);
 	}
 
 	private void updatePaddlePosition() {

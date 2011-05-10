@@ -12,6 +12,8 @@ public interface ViewListener {
 
 	public void cancelGame() throws BamException;
 
+	public void startGame() throws BamException;
+
 	public void movePaddleTo(int x);
 
 	public void movePaddleIn(Paddle.Movement dir);

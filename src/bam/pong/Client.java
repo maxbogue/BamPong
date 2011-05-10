@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The controller class for the client side of BamPong.
@@ -14,10 +15,11 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 
 	// Width and height of gamefield and paddle.
 	public final int w, h, pw, ph;
+	
+	public Engine engine;
 
 	private ServerCommunication serverComm;
 	private PeerCommunication peerComm;
-	private Engine engine;
 	private Paddle paddle;
 	private Game game;
 	
@@ -80,6 +82,10 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 			throw new BamException("Error talking to server");
 		}
 	}
+	
+	public void startGame() throws BamException {
+		engine.start();
+	}
 
 	public void movePaddleTo(int x) {
 		paddle.x = x;
@@ -113,7 +119,7 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 		// TODO: Ball gets forgotten
 	}
 
-	public void fieldUpdated() {}
+	public void fieldUpdated(Set<Ball> balls, Paddle paddle) {}
 	public void ballAdded(Ball b) {}
 	
 	//////////////////

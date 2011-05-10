@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.swing.JComponent;
@@ -22,14 +23,11 @@ import bam.pong.Paddle;
 @SuppressWarnings("serial")
 public class GameField extends JComponent implements EngineListener, KeyListener {
 
-	private Set<Ball> balls;
-	private Paddle paddle;
+	private Set<Ball> balls = new HashSet<Ball>();
+	private Paddle paddle = null;
 	
 	/** Constructor. It constructs. */
-	public GameField(Set<Ball> balls, Paddle paddle) {
-		this.balls = balls;
-		this.paddle = paddle;
-	}
+	public GameField() {}
 
 	/** Draw the ball. */
 	@Override
@@ -41,11 +39,13 @@ public class GameField extends JComponent implements EngineListener, KeyListener
 		for ( Ball b : balls ) {
 			g2.fillOval((int)b.x, (int)b.y, b.D, b.D);
 		}
-		g2.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+		if (paddle != null) g2.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 	}
 
 	@Override
-	public void fieldUpdated() {
+	public void fieldUpdated(Set<Ball> balls, Paddle paddle) {
+		this.balls = balls;
+		this.paddle = paddle;
 		repaint();
 	}
 

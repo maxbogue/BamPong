@@ -63,8 +63,9 @@ public class BamPong {
 		peerComm.setId(serverComm.getId());
 
 		Client c = new Client(300, 200, 80, 15, serverComm, peerComm);
-		
-		// TODO
+		GameField gf = new GameField();
+		c.engine.addListener(gf);
+		BamPongView bpv = new BamPongView(gf);
 	}
 	
 }
