@@ -62,21 +62,7 @@ public class BamPong {
 		}
 		peerComm.setId(serverComm.getId());
 
-		int w = 300;
-		int h = 200;
-
-		int pw = 80; // Paddle width.
-		int ph = 15; // Paddle height.
-		
-		Paddle paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
-		
-		// Ball size must be subtracted here so the balls look like they hit the wall.
-		Engine e = new Engine(w, h, paddle);
-		GameField f = new GameField(e.getBalls(), paddle);
-		f.setPreferredSize(new Dimension(w, h));
-		e.addListener(f);
-		
-		Client c = new Client(w, h, pw, ph, serverComm, peerComm);
+		Client c = new Client(300, 200, 80, 15, serverComm, peerComm);
 		
 		// TODO
 	}
