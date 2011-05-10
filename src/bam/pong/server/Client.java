@@ -10,7 +10,8 @@ public class Client {
 	private SocketChannel channel;
 	private Game game = null;
 	
-	public Client(String name, int openPort, SocketChannel channel) {
+	public Client(int id, String name, int openPort, SocketChannel channel) {
+		this.id = id;
 		this.name = name;
 		this.channel = channel;
 	}

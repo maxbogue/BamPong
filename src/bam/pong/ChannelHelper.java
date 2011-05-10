@@ -124,6 +124,14 @@ public class ChannelHelper {
 		sendAll(c, msg);
 	}
 	
+	/** Send a single int to a channel. */
+	public static void putInt(SocketChannel c, int i) throws IOException {
+		ByteBuffer msg = ByteBuffer.allocate(4);
+		msg.putInt(i);
+		msg.flip();
+		sendAll(c, msg);
+	}
+	
 	/** Send a byte and a boolean to a channel.
 	 * 
 	 * Generally used for a message type and a reply value.

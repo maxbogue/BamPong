@@ -21,6 +21,7 @@ public class ServerCommunication {
 //	private Peer me;                  // Our local peer information
 	private Selector selector;        // wait on this for server messages
 	private Queue<ByteBuffer> outbox; // messages to send
+	private int id;                   // ID from server
 	
 	private static final Charset utf8 = Charset.forName("UTF-8");
 	
@@ -46,6 +47,9 @@ public class ServerCommunication {
 		msg.flip();
 		ChannelHelper.sendAll(server, msg);
 		
+		// Read peer ID
+		id = ChannelHelper.getInt(server);
+		
 		// Prepare background communications
 		outbox = new ConcurrentLinkedQueue<ByteBuffer>();
 		selector = Selector.open();
@@ -54,6 +58,11 @@ public class ServerCommunication {
 		
 		// Start communications thread.
 		watcher.start();
+	}
+	
+	/** Returns the ID the server gave us. */
+	public int getId() {
+		return id;
 	}
 	
 	/** Connect to a server at a given host and port */

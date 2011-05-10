@@ -29,6 +29,9 @@ public class Server {
 	/** Existing open channels to clients. */
 	private Map<SocketChannel, Client> clients = new HashMap<SocketChannel, Client>();
 	
+	/** Maximum ID handed out */
+	private int maxID = 0;
+	
 	/** Existing games. */
 	private Map<String, Game> games = new HashMap<String, Game>();
 	
@@ -230,7 +233,9 @@ public class Server {
 	public Client makeClient(SocketChannel c) throws IOException {
 		String name = ChannelHelper.getString(c);
 		int port = ChannelHelper.getInt(c);
-		return new Client(name, port, c);
+		int id = ++maxID;
+		ChannelHelper.putInt(c, id);
+		return new Client(++maxID, name, port, c);
 	}
 	
 }

@@ -30,8 +30,9 @@ public class PeerCommunication {
 	private Selector selector; // selector to wait on for data
 	private Charset utf8;  // for string encoding
 	
-	private Peer me;
-		
+	private String nick; // What we identify ourselves as
+	private Integer id; // Our Peer ID (from server)
+	
 	private class Watcher implements Runnable {
 		@Override
 		public void run() {
@@ -111,8 +112,8 @@ public class PeerCommunication {
 	 * 
 	 * @throws IOException for any socket problems
 	 */
-	public PeerCommunication(Peer me) throws IOException {
-		this.me = me;
+	public PeerCommunication(String nick) throws IOException {
+		this.nick = nick;
 		
 		sockets = new HashMap<Peer, SocketChannel>();
 		peers   = new HashMap<SocketChannel, Peer>();
@@ -136,6 +137,14 @@ public class PeerCommunication {
 		watcher.start();
 	}
 	
+	/** Sets the peer ID.
+	 * 
+	 * Must be set before attempting to connect to another peer.
+	 */
+	public void setId(int id) {
+		this.id = id;
+	}
+	
 	private PeerListener listener; // Thing to notify on events
 	
 	/** Set a new listener.
@@ -155,6 +164,9 @@ public class PeerCommunication {
 
 	/** Connect to a new peer. */
 	public void connectToPeer(Peer peer) throws IOException {
+		if( id == null )
+			throw new IllegalStateException("Must set peer ID before connecting to another peer");
+
 		InetSocketAddress address = peer.getSocketAddr();
 		if (address == null)
 			throw new IllegalArgumentException("peer must have address to connect to it");
@@ -169,7 +181,7 @@ public class PeerCommunication {
 	}
 
 	private void log(String message) {
-		System.err.println(me.getName() + ": " + message);
+		System.err.println(nick + ": " + message);
 	}
 	
 	// Called when a peer tries to connect to us
@@ -195,9 +207,9 @@ public class PeerCommunication {
 		}
 		
 		// Assemble response 
-		ByteBuffer name = utf8.encode(me.getName());
+		ByteBuffer name = utf8.encode(nick);
 		message = ByteBuffer.allocateDirect(name.limit() + 6);
-		message.putInt(me.getId());
+		message.putInt(id);
 		ChannelHelper.putString(message, name);
 		message.flip();
 		
@@ -290,15 +302,13 @@ public class PeerCommunication {
 	// Test method.  Attempts to establish a connection and send a debug message.
 	public static void main(String args[]) {
 		try {
-			Peer p1 = new Peer(1, "p1");
-			PeerCommunication pc1 = new PeerCommunication(p1);
-			p1.setAddress(InetAddress.getLocalHost(), pc1.getPort());
+			PeerCommunication pc1 = new PeerCommunication("p1");
+			pc1.setId(1);
 
-			Peer p2 = new Peer(2, "p2");
-			PeerCommunication pc2 = new PeerCommunication(p2);
-			p2.setAddress(InetAddress.getLocalHost(), pc2.getPort());
+			PeerCommunication pc2 = new PeerCommunication("p2");
+			pc2.setId(2);
 			
-			pc2.connectToPeer(p1);
+			pc2.connectToPeer(new Peer(1, "p1", InetAddress.getLocalHost(), pc1.getPort()));
 			Thread.sleep(500);
 			pc1.sendDebug("Hello, peers!");
 		} catch (Exception e) {
