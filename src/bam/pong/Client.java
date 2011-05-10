@@ -2,6 +2,7 @@ package bam.pong;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -93,10 +94,23 @@ public class Client implements EngineListener, ViewListener, PeerListener {
 	////////////////////
 
 	public void sendBall(Ball b) {
-		// TODO NEED PEER!
+		int div = w / game.peers.size();
+		int peerNum = (int) b.x / div;
+		
+		Iterator<Peer> it = game.peers.values().iterator();
+		while (peerNum-- > 0)
+			it.next();
+		Peer peer = it.next();
+		try {
+			peerComm.sendBall(b, peer);
+		} catch (IOException e) {
+			// TODO: Ball gets forgotten
+			e.printStackTrace();
+		}
 	}
 
 	public void ballDropped(Ball b) {
+		// TODO: Ball gets forgotten
 	}
 
 	public void fieldUpdated() {}
