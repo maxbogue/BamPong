@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -209,7 +210,42 @@ public class Server {
 		case Constants.JOIN_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				ChannelHelper.sendBoolean(c, k, true);
+				b = ByteBuffer.allocateDirect(1024);
+				b.put(Constants.JOIN_GAME);
+				b.put((byte) 1);
+				
+				Game game = games.get(name);
+				List<Client> peers = game.getPlayers();
+				
+				b.putInt(peers.size());
+				for( Client client : peers ) {
+					// ID(4), IP(4), Port(4) = 12
+					if (b.remaining() < 12) {
+						b.flip();
+						ChannelHelper.sendAll(c, b);
+						b.clear();
+					}
+					b.putInt(client.getId());
+					b.put(client.getChannel().socket().getInetAddress().getAddress());
+					b.putInt(client.getPort());
+					
+					if( !ChannelHelper.putString(b, client.getName())) {
+						b.flip();
+						ChannelHelper.sendAll(c, b);
+						b.clear();
+						
+						// Check to see if the name is too big for the buffer
+						ByteBuffer e = utf8.encode(client.getName());
+						if( b.remaining() < e.limit() + 2)  // If so, reallocate
+							b = ByteBuffer.allocateDirect(e.limit() + 2);
+						
+						// Put the string into the new buffer.  (must fit)
+						ChannelHelper.putString(b, e);
+					}
+				}
+				b.flip();
+				ChannelHelper.sendAll(c, b);
+
 				games.get(name).addPlayer(clients.get(c));
 			} else {
 				ChannelHelper.sendBoolean(c, k, false);

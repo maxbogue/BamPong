@@ -113,7 +113,7 @@ public class ServerCommunication {
 	private static List<String> games = new ArrayList<String>(); // LIST_GAMES
 	private static byte create[] = new byte[1];                  // CREATE_GAME
 	private static byte cancel[] = new byte[1];                  // CANCEL_GAME
-	private static byte join[]   = new byte[1];                  // JOIN_GAME
+	private static Game join[]   = new Game[1];                  // JOIN_GAME
 	private static byte start[]  = new byte[1];                  // START_GAME
 	
 	private void wakeUp(Object o) {
@@ -146,7 +146,26 @@ public class ServerCommunication {
 			wakeUp(cancel);
 			break;
 		case Constants.JOIN_GAME:
-			join[0] = ChannelHelper.getByte(server);
+			boolean success = ChannelHelper.getByte(server) != 0;
+			
+			if ( success ) {
+				Game game = new Game();
+				int num = ChannelHelper.getInt(server);
+				while(num-- > 0) {
+					int id = ChannelHelper.getInt(server);
+					ByteBuffer ip = ChannelHelper.readBytes(server, 4);
+					int port = ChannelHelper.getInt(server);
+					String name = ChannelHelper.getString(server);
+					
+					InetAddress addr = InetAddress.getByAddress(ip.array());
+					Peer peer = new Peer(id, name, addr, port);
+					game.peers.put(id, peer);
+				}
+				join[0] = game;
+			} else {
+				join[0] = null;
+			}
+
 			wakeUp(join);
 			break;
 		case Constants.START_GAME:
@@ -195,12 +214,13 @@ public class ServerCommunication {
 	}
 	
 	/** Ask server to join a game */
-	public boolean joinGame(String name) throws IOException {
+	public Game joinGame(String name) throws IOException {
 		ChannelHelper.sendString(server, Constants.JOIN_GAME, name);
 		
 		waitOn(join);
 		
-		return join[0] != 0;
+		join[0].name = name;
+		return join[0];
 	}
 	
 	/** Ask server to start a game */

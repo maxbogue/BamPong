@@ -47,6 +47,10 @@ public class Game {
 		return players.get(0);
 	}
 	
+	public List<Client> getPlayers() {
+		return players;
+	}
+	
 	public boolean hasBegun() {
 		return false;
 	}
