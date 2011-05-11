@@ -9,6 +9,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -121,11 +122,26 @@ public class Server {
 			}
 
 			// Check for closed clients
+			List<String> dead_games = new ArrayList<String>();
 			for (SocketChannel socket : clients.keySet()) {
 				if (!socket.isOpen()) {
 					Client client = clients.remove(socket);
+					log("Player "+client.getName()+" dropped");
+					for (Game game : games.values()) {
+						if(client.equals(game.getOwner())) {
+							log(" Cancelling their game");
+							if(!game.removePlayer(client))
+								game.cancel(); // Owner dropping = cancel game
+							dead_games.add(game.getName());
+						} else if(game.removePlayer(client)) {
+							log(" Removing empty game");
+							dead_games.add(game.getName());
+						}
+					}
 				}
 			}
+			for( String name : dead_games )
+				games.remove(name);
 			
 			// Check for other closed sockets
 			for (SocketChannel socket : handShaken)

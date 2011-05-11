@@ -56,6 +56,15 @@ public class Game {
 		players.add(c);
 	}
 	
+	/** Removes a player from the game
+	 * 
+	 * @return false if there are other players in the game
+	 */
+	public boolean removePlayer(Client c) {
+		players.remove(c);
+		return players.isEmpty();
+	}
+	
 	public Client getOwner() {
 		return players.get(0);
 	}
