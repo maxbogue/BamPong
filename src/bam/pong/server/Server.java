@@ -32,6 +32,9 @@ public class Server {
 	/** Existing open channels to clients. */
 	private Map<SocketChannel, Client> clients = new HashMap<SocketChannel, Client>();
 	
+	/** Client IDs to client info */
+	private Map<Integer, Client> ids2clients = new HashMap<Integer, Client>();
+	
 	/** Maximum ID handed out */
 	private int maxID = 0;
 	
@@ -106,7 +109,9 @@ public class Server {
 						}
 					} else if ( handShaken.contains(c) ) {
 						SocketChannel sc = (SocketChannel) c;
-						clients.put(sc, makeClient(sc));
+						Client client = makeClient(sc);
+						clients.put(sc, client);
+						ids2clients.put(client.getId(), client);
 						handShaken.remove(c);
 					} else if ( clients.containsKey(c) ) {
 						processClientMessage((SocketChannel) c);
@@ -126,6 +131,7 @@ public class Server {
 			for (SocketChannel socket : clients.keySet().toArray(new SocketChannel[0])) {
 				if (!socket.isOpen()) {
 					Client client = clients.remove(socket);
+					ids2clients.remove(client.getId());
 					log("Player "+client.getName()+" dropped");
 					for (Game game : games.values()) {
 						if(client.equals(game.getOwner())) {
@@ -294,6 +300,20 @@ public class Server {
 				log("Starting game "+name);
 				games.get(name).startGame();
 			}
+			break;
+		case Constants.BALL_DROPPED:
+			int id = ChannelHelper.getInt(c);
+			Client dropTo = ids2clients.get(id);
+			if (dropTo == null)
+				break;
+			
+			b = ByteBuffer.allocate(5);
+			b.put(Constants.NEW_BALL);
+			b.putInt(id);
+			b.flip();
+			
+			ChannelHelper.sendAll(dropTo.getChannel(), b);
+			
 			break;
 		default:
 			System.err.println("Invalid key byte: " + k);

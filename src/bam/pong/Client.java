@@ -127,7 +127,12 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	}
 
 	public void ballDropped(Ball b) {
-		// TODO: Ball gets forgotten
+		try {
+			serverComm.ballDropped(b);
+		} catch (IOException e) {
+			// TODO: Ball gets forgotten
+			e.printStackTrace();
+		}
 	}
 
 	public void fieldUpdated(Set<Ball> balls, Paddle paddle) {}

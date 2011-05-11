@@ -105,6 +105,15 @@ public class ServerCommunication {
 		sendMessage(b);
 	}
 	
+	// Queue an int message
+	private void sendMessage(byte type, int contents) {
+		ByteBuffer b = ByteBuffer.allocate(5);
+		b.put(type);
+		b.putInt(contents);
+		b.flip();
+		sendMessage(b);
+	}
+	
 	private Thread watcher = new Thread("Server Communication") {
 		public void run() {
 			while (server.isOpen()) {
@@ -262,31 +271,8 @@ public class ServerCommunication {
 		sendMessage(Constants.START_GAME, name);
 	}
 	
-	public static void main(String args[]) {
-		final Server server;
-		try {
-			server = new Server();
-			// Get me a server.
-			Thread thread = new Thread() {
-				public void run() {
-					server.run();
-				}
-			};
-			thread.start();
-			System.out.println("Server started...");
-
-			ServerCommunication sc = new ServerCommunication("p1", 1,
-					InetAddress.getLocalHost(), server.getPort());
-			System.out.println("Communicator started...");
-			
-			sc.createGame("test");
-			for (String s : sc.getGames()) {
-				System.out.println(s);
-			}
-			
-			server.shutdown();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	/** Tell server the ball fell off our screen */
+	public void ballDropped(Ball b) throws IOException {
+		sendMessage(Constants.BALL_DROPPED, b.id);
 	}
 }
