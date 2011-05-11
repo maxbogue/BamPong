@@ -1,6 +1,7 @@
 package bam.pong.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
@@ -8,8 +9,10 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,21 +50,31 @@ public class Server {
 	
 	public Server(int port) throws IOException {
 		incoming = ServerSocketChannel.open();
-		incoming.socket().bind(null, port);
+		incoming.socket().bind(new InetSocketAddress(port));
 	}
 	
 	public int getPort() {
 		return incoming.socket().getLocalPort();
 	}
 	
-	public void run() throws IOException {
+	private void log(String msg) {
+		System.out.println(msg);
+	}
+	
+	public void run() {
 		Set<SocketChannel> handShaken  = new HashSet<SocketChannel>();
 		Set<SocketChannel> new_sockets = new HashSet<SocketChannel>();
 
-		selector = Selector.open();
-		incoming.configureBlocking(false);
-		incoming.register( selector, SelectionKey.OP_ACCEPT );
+		try {
+			selector = Selector.open();
+			incoming.configureBlocking(false);
+			incoming.register( selector, SelectionKey.OP_ACCEPT );
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}
 
+		log("Ready for connections on port "+incoming.socket().getLocalPort());
 		while ( incoming.isOpen() || !clients.isEmpty() ) {
 			try {
 				// wait on selector
@@ -74,6 +87,7 @@ public class Server {
 					Channel c = k.channel();
 					
 					if ( c == incoming ) {
+						log("New connection.");
 						SocketChannel sc = incoming.accept();
 						new_sockets.add(sc);
 						sc.configureBlocking(false);
@@ -83,9 +97,11 @@ public class Server {
 						new_sockets.remove(sc);
 						ByteBuffer bb = ChannelHelper.readBytes(sc, 4);
 						if (utf8.decode(bb).toString().equals("bam?")) {
+							log("Handshaking...");
 							sc.write(utf8.encode("BAM!"));
 							handShaken.add(sc);
 						} else {
+							log("No hand to shake");
 							sc.close();
 						}
 					} else if ( handShaken.contains(c) ) {
@@ -100,25 +116,40 @@ public class Server {
 						c.close();
 					}
 				}
-				
-				// Check for closed sockets
-				for (SocketChannel socket : clients.keySet()) {
-					if (!socket.isOpen()) {
-						clients.remove(socket);
-						// TODO: Reconnect, propose drop
-					}
-				}
-				for (SocketChannel socket : handShaken)
-					if (!socket.isOpen())
-						handShaken.remove(socket);
-				for (SocketChannel socket : new_sockets)
-					if (!socket.isOpen())
-						handShaken.remove(socket);
 			} catch (IOException e) {
 				// TODO Handle this better.  In mean time, just keep going.
-				System.err.println(e);
 				e.printStackTrace();
 			}
+
+			// Check for closed clients
+			List<String> dead_games = new ArrayList<String>();
+			for (SocketChannel socket : clients.keySet().toArray(new SocketChannel[0])) {
+				if (!socket.isOpen()) {
+					Client client = clients.remove(socket);
+					log("Player "+client.getName()+" dropped");
+					for (Game game : games.values()) {
+						if(client.equals(game.getOwner())) {
+							log(" Cancelling their game");
+							if(!game.removePlayer(client))
+								game.cancel(); // Owner dropping = cancel game
+							dead_games.add(game.getName());
+						} else if(game.removePlayer(client)) {
+							log(" Removing empty game");
+							dead_games.add(game.getName());
+						}
+					}
+				}
+			}
+			for( String name : dead_games )
+				games.remove(name);
+			
+			// Check for other closed sockets
+			for (SocketChannel socket : handShaken)
+				if (!socket.isOpen())
+					handShaken.remove(socket);
+			for (SocketChannel socket : new_sockets)
+				if (!socket.isOpen())
+					handShaken.remove(socket);
 		}
 		
 		// Close all new sockets
@@ -166,6 +197,7 @@ public class Server {
 		
 		switch (k) {
 		case Constants.LIST_GAMES:
+			log("Listing "+games.size()+" game(s)");
 			b = ByteBuffer.allocateDirect(1024);
 			b.put(Constants.LIST_GAMES);
 			b.putInt(games.size());
@@ -191,8 +223,10 @@ public class Server {
 		case Constants.CREATE_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
+				log("Refused duplicate game "+name);
 				ChannelHelper.sendBoolean(c, k, false);
 			} else {
+				log("Creating game "+name);
 				games.put(name, new Game(name, clients.get(c)));
 				ChannelHelper.sendBoolean(c, k, true);
 			}
@@ -200,28 +234,65 @@ public class Server {
 		case Constants.CANCEL_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name) && !games.get(name).hasBegun()) {
+				log("Cancelled game "+name);
 				ChannelHelper.sendBoolean(c, k, true);
-				games.get(name).cancel();
+				games.remove(name).cancel();
 			} else {
+				log("Refused to cancel game "+name);
 				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		case Constants.JOIN_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
-				ChannelHelper.sendBoolean(c, k, true);
-				games.get(name).addPlayer(clients.get(c));
+				b = ByteBuffer.allocateDirect(1024);
+				b.put(Constants.JOIN_GAME);
+				b.put((byte) 1);
+				
+				Game game = games.get(name);
+				List<Client> peers = game.getPlayers();
+				
+				b.putInt(peers.size());
+				for( Client client : peers ) {
+					// ID(4), IP(4), Port(4) = 12
+					if (b.remaining() < 12) {
+						b.flip();
+						ChannelHelper.sendAll(c, b);
+						b.clear();
+					}
+					b.putInt(client.getId());
+					b.put(client.getChannel().socket().getInetAddress().getAddress());
+					b.putInt(client.getPort());
+					
+					if( !ChannelHelper.putString(b, client.getName())) {
+						b.flip();
+						ChannelHelper.sendAll(c, b);
+						b.clear();
+						
+						// Check to see if the name is too big for the buffer
+						ByteBuffer e = utf8.encode(client.getName());
+						if( b.remaining() < e.limit() + 2)  // If so, reallocate
+							b = ByteBuffer.allocateDirect(e.limit() + 2);
+						
+						// Put the string into the new buffer.  (must fit)
+						ChannelHelper.putString(b, e);
+					}
+				}
+				b.flip();
+				ChannelHelper.sendAll(c, b);
+
+				log("Adding player to "+name);
+				game.addPlayer(clients.get(c));
 			} else {
+				log("Coudln't find game "+name+" to join");
 				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		case Constants.START_GAME:
 			name = ChannelHelper.getString(c);
-			if (games.containsKey(name)) {
-				ChannelHelper.sendBoolean(c, k, true);
+			if(games.containsKey(name)) {
+				log("Starting game "+name);
 				games.get(name).startGame();
-			} else {
-				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		default:
@@ -235,7 +306,16 @@ public class Server {
 		int port = ChannelHelper.getInt(c);
 		int id = ++maxID;
 		ChannelHelper.putInt(c, id);
+		log("New Client: "+name);
 		return new Client(++maxID, name, port, c);
 	}
 	
+	public static void main(String args[]) {
+		try {
+			Server server = new Server(1234);
+			server.run();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

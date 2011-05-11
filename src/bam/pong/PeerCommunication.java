@@ -72,6 +72,8 @@ public class PeerCommunication {
 							Peer peer = peers.get(socket);
 							peers.remove(socket);
 							sockets.remove(peer);
+							if(listener != null)
+								listener.dropPeer(peer);
 							// TODO: Reconnect, propose drop
 						}
 					}
@@ -133,7 +135,7 @@ public class PeerCommunication {
 		incoming.register(selector, SelectionKey.OP_ACCEPT );
 		
 		// Start listener thread
-		watcher = new Thread(new Watcher());
+		watcher = new Thread(new Watcher(), "Peer Communication");
 		watcher.start();
 	}
 	
@@ -208,8 +210,9 @@ public class PeerCommunication {
 		
 		// Assemble response 
 		ByteBuffer name = utf8.encode(nick);
-		message = ByteBuffer.allocateDirect(name.limit() + 6);
+		message = ByteBuffer.allocateDirect(name.limit() + 10); // id(4), port(4), name(2+limit)
 		message.putInt(id);
+		message.putInt(getPort());
 		ChannelHelper.putString(message, name);
 		message.flip();
 		
@@ -225,13 +228,17 @@ public class PeerCommunication {
 	// Called when someone who's just connected to us sends a messages
 	private void processNewSocket(SocketChannel c) throws IOException {
 		int id      = ChannelHelper.getInt(c);
+		int port    = ChannelHelper.getInt(c);
 		String name = ChannelHelper.getString(c);
 		
 		// Move to connected peers lists
-		Peer peer = new Peer(id, name);
+		Peer peer = new Peer(id, name, c.socket().getInetAddress(), port);
 		new_sockets.remove(c);
 		peers.put(c, peer);
 		sockets.put(peer, c);
+		
+		if(listener != null)
+			listener.addPeer(peer);
 	}
 	
 	/** Send a ball to a peer. */
@@ -239,6 +246,7 @@ public class PeerCommunication {
 		ByteBuffer msg = ByteBuffer.allocateDirect(5);
 		msg.put(MSG_BALL);
 		msg.putInt(b.id);
+		msg.flip();
 		
 		SocketChannel sock = sockets.get(p);
 		if( sock == null )
@@ -269,7 +277,7 @@ public class PeerCommunication {
 		Peer peer = peers.get(c);
 
 		ByteBuffer b = ByteBuffer.allocateDirect(1);
-		if (c.read(b) == 0)
+		if (c.read(b) <= 0)
 			return; // No data?
 		b.flip();
 		byte type = b.get();
@@ -281,7 +289,7 @@ public class PeerCommunication {
 		case MSG_BALL:
 			int id = ChannelHelper.getInt(c);
 			if (listener != null)
-				listener.newBall(id);
+				listener.receiveBall(id);
 			break;
 //		Dropped ball
 //			Informative to all peers & server
@@ -296,23 +304,6 @@ public class PeerCommunication {
 //			All peers, send choice of backup	
 		default:
 			System.err.println("Unknown peer message: " + type);
-		}
-	}
-	
-	// Test method.  Attempts to establish a connection and send a debug message.
-	public static void main(String args[]) {
-		try {
-			PeerCommunication pc1 = new PeerCommunication("p1");
-			pc1.setId(1);
-
-			PeerCommunication pc2 = new PeerCommunication("p2");
-			pc2.setId(2);
-			
-			pc2.connectToPeer(new Peer(1, "p1", InetAddress.getLocalHost(), pc1.getPort()));
-			Thread.sleep(500);
-			pc1.sendDebug("Hello, peers!");
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 }

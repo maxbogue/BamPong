@@ -5,15 +5,17 @@ import java.nio.channels.SocketChannel;
 public class Client {
 
 	
-	private int id = 0;
+	private int id;
 	private String name;
 	private SocketChannel channel;
 	private Game game = null;
+	private int port;
 	
 	public Client(int id, String name, int openPort, SocketChannel channel) {
 		this.id = id;
 		this.name = name;
 		this.channel = channel;
+		this.port = openPort;
 	}
 	
 	public void setGame(Game game) {
@@ -25,5 +27,5 @@ public class Client {
 	public String getName() { return name; }
 	public SocketChannel getChannel() { return channel; }
 	public Game getGame() { return game; }
-	
+	public int getPort() { return port; }
 }

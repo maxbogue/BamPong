@@ -10,7 +10,9 @@ public interface ViewListener {
 
 	public void joinGame(String gameName) throws BamException;
 
-	public void cancelGame(String gameName) throws BamException;
+	public void cancelGame() throws BamException;
+
+	public void startGame() throws BamException;
 
 	public void movePaddleTo(int x);
 

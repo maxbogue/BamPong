@@ -49,7 +49,7 @@ public class GameField extends View implements EngineListener {
 	}
 
 	@Override
-	public void fieldUpdated() {
+	public void fieldUpdated(Set<Ball> balls, Paddle paddle) {
 		postInvalidate();
 	}
 

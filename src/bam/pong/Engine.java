@@ -38,7 +38,7 @@ public class Engine implements Runnable {
 	
 	/** Makes an engine using the given width and height. */
 	public Engine(int width, int height, Paddle paddle) {
-		ballMover = new Thread(this);
+		ballMover = new Thread(this, "Game Engine");
 		this.width = width;
 		this.height = height;
 		this.paddle = paddle;
@@ -52,7 +52,7 @@ public class Engine implements Runnable {
 	private void updateField() {
 		updatePaddlePosition();
 		updateBallPositions();
-		for (EngineListener el : listeners) el.fieldUpdated();
+		for (EngineListener el : listeners) el.fieldUpdated(balls, paddle);
 	}
 
 	private void updatePaddlePosition() {
@@ -69,28 +69,25 @@ public class Engine implements Runnable {
 		for (Ball b : new HashSet<Ball>(balls)) {
 //			double dx = b.dx / UPDATES_PER_SEC;
 //			double dy = b.dy / UPDATES_PER_SEC;
-			// Detect paddle collision.
-			if (b.x + b.D > paddle.x && b.x < paddle.x + paddle.w && b.y + b.D > paddle.y) {
+			if (b.x <= 0 || b.x + b.D >= width) {
+				// Bounce off sides.
+				b.dx *= -1;
+			} else if (b.y - b.D >= height) {
+				// Detect if ball fell off bottom of screen.
+				for (EngineListener el : listeners) el.ballDropped(b);
+				balls.remove(b);
+			} else if (b.y  <= 0) {
+				// Detect if ball went off the top of the screen.
+				for (EngineListener el : listeners) el.sendBall(b);
+				balls.remove(b);
+			} else if (b.x + b.D > paddle.x && b.x < paddle.x + paddle.w && b.y + b.D > paddle.y) {
+				// Detect paddle collision.
 				if (b.y + 0.5 * b.D > paddle.y) {
 					b.dx *= -1;
 				} else {
 					b.dx += (b.x - (paddle.x + paddle.w/2)) / 3;
 				}
 				b.dy = -1 * Math.abs(b.dy);
-			}
-			// Bounce off sides.
-			if (b.x <= 0 || b.x + b.D >= width) b.dx *= -1;
-			// Detect if ball fell off bottom of screen.
-			if (b.y - b.D >= height) {
-				b.dy *= -1;
-//				for (EngineListener el : listeners) el.ballDropped(b);
-//				balls.remove(b);
-			}
-			// Detect if ball went off the top of the screen.
-			if (b.y  <= 0) {
-				b.dy *= -1;
-//				for (EngineListener el : listeners) el.sendBall(b);
-//				balls.remove(b);
 			}
 			b.x += b.dx / UPDATES_PER_SEC;
 			b.y += b.dy / UPDATES_PER_SEC;
@@ -128,4 +125,9 @@ public class Engine implements Runnable {
 		return balls;
 	}
 	
+	/** Returns the width of the playing field */
+	public int getWidth() { return width; }
+	
+	/** Returns the height of the playing field */
+	public int getHeight() { return height; }
 }

@@ -1,5 +1,7 @@
 package bam.pong;
 
+import java.util.Set;
+
 /**
  * Interface for interacting with the engine.
  * 
@@ -10,7 +12,7 @@ public interface EngineListener {
 	/**
 	 * Ball and paddle positions have been updated.
 	 */
-	public void fieldUpdated();
+	public void fieldUpdated(Set<Ball> balls, Paddle paddle);
 	
 	/**
 	 * The given ball went off the top of the field.

@@ -23,6 +23,9 @@ public class ServerCommunication {
 	private Queue<ByteBuffer> outbox; // messages to send
 	private int id;                   // ID from server
 	
+	// Things to notify on async game events
+	private List<ServerListener> listeners = new ArrayList<ServerListener>();
+	
 	private static final Charset utf8 = Charset.forName("UTF-8");
 	
 	/** Connect to a server at a given address */
@@ -60,6 +63,14 @@ public class ServerCommunication {
 		watcher.start();
 	}
 	
+	public void addListener(ServerListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void removeListener(ServerListener listener) {
+		listeners.remove(listener);
+	}
+	
 	/** Returns the ID the server gave us. */
 	public int getId() {
 		return id;
@@ -84,7 +95,17 @@ public class ServerCommunication {
 		sendMessage(b);
 	}
 	
-	private Thread watcher = new Thread() {
+	// Queue a string message
+	private void sendMessage(byte type, String contents) {
+		ByteBuffer e = utf8.encode(contents);
+		ByteBuffer b = ByteBuffer.allocate(e.limit()+3);
+		b.put(type);
+		ChannelHelper.putString(b, e);
+		b.flip();
+		sendMessage(b);
+	}
+	
+	private Thread watcher = new Thread("Server Communication") {
 		public void run() {
 			while (server.isOpen()) {
 				try {
@@ -113,8 +134,7 @@ public class ServerCommunication {
 	private static List<String> games = new ArrayList<String>(); // LIST_GAMES
 	private static byte create[] = new byte[1];                  // CREATE_GAME
 	private static byte cancel[] = new byte[1];                  // CANCEL_GAME
-	private static byte join[]   = new byte[1];                  // JOIN_GAME
-	private static byte start[]  = new byte[1];                  // START_GAME
+	private static Game join[]   = new Game[1];                  // JOIN_GAME
 	
 	private void wakeUp(Object o) {
 		synchronized (o) {
@@ -146,15 +166,45 @@ public class ServerCommunication {
 			wakeUp(cancel);
 			break;
 		case Constants.JOIN_GAME:
-			join[0] = ChannelHelper.getByte(server);
+			boolean success = ChannelHelper.getByte(server) != 0;
+			
+			if ( success ) {
+				Game game = new Game();
+				int num = ChannelHelper.getInt(server);
+				while(num-- > 0) {
+					int id = ChannelHelper.getInt(server);
+					ByteBuffer ip_buff = ChannelHelper.readBytes(server, 4);
+					int port = ChannelHelper.getInt(server);
+					String name = ChannelHelper.getString(server);
+					
+					byte ip[] = new byte[4];
+					ip_buff.get(ip);
+					InetAddress addr = InetAddress.getByAddress(ip);
+					Peer peer = new Peer(id, name, addr, port);
+					game.peers.put(id, peer);
+				}
+				join[0] = game;
+			} else {
+				join[0] = null;
+			}
+
 			wakeUp(join);
 			break;
 		case Constants.START_GAME:
-			start[0] = ChannelHelper.getByte(server);
-			wakeUp(start);
+			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
+				listener.gameStarted();
+			break;
+		case Constants.GAME_CANCELED:
+			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
+				listener.gameCanceled();
+			break;
+		case Constants.NEW_BALL:
+			int id = ChannelHelper.getInt(server);
+			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
+				listener.newBall(id);
 			break;
 		default:
-			System.err.println("Unkown message type "+type);
+			System.err.println("Unknown message type "+type);
 		}
 	}
 	
@@ -177,7 +227,7 @@ public class ServerCommunication {
 	
 	/** Ask the server to create a game */
 	public boolean createGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.CREATE_GAME, name);
+		sendMessage(Constants.CREATE_GAME, name);
 		
 		// Wait for result
 		waitOn(create);
@@ -187,29 +237,29 @@ public class ServerCommunication {
 	
 	/** Ask server to cancel a game */
 	public boolean cancelGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.CANCEL_GAME, name);
-		
+		sendMessage(Constants.CANCEL_GAME, name);
+
 		waitOn(cancel);
-		
+
 		return cancel[0] != 0;
 	}
 	
 	/** Ask server to join a game */
-	public boolean joinGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.JOIN_GAME, name);
+	public Game joinGame(String name) throws IOException {
+		sendMessage(Constants.JOIN_GAME, name);
 		
 		waitOn(join);
 		
-		return join[0] != 0;
+		join[0].name = name;
+		return join[0];
 	}
 	
-	/** Ask server to start a game */
-	public boolean startGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.START_GAME, name);
-		
-		waitOn(start);
-		
-		return start[0] != 0;
+	/** Ask server to start a game.
+	 * 
+	 * Asynchronous.  Notifies listener when game starts.
+	 */
+	public void startGame(String name) throws IOException {
+		sendMessage(Constants.START_GAME, name);
 	}
 	
 	public static void main(String args[]) {
@@ -219,11 +269,7 @@ public class ServerCommunication {
 			// Get me a server.
 			Thread thread = new Thread() {
 				public void run() {
-					try {
-						server.run();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					server.run();
 				}
 			};
 			thread.start();
