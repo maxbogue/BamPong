@@ -44,6 +44,7 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 		content.add(start);
 		start.setEnabled(false);
 		pack();
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
 		// Setup callbacks
 		create.addActionListener(new ActionListener() {
