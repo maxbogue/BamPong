@@ -92,6 +92,16 @@ public class ServerCommunication {
 		sendMessage(b);
 	}
 	
+	// Queue a string message
+	private void sendMessage(byte type, String contents) {
+		ByteBuffer e = utf8.encode(contents);
+		ByteBuffer b = ByteBuffer.allocate(e.limit()+3);
+		b.put(type);
+		ChannelHelper.putString(b, e);
+		b.flip();
+		sendMessage(b);
+	}
+	
 	private Thread watcher = new Thread("Server Communication") {
 		public void run() {
 			while (server.isOpen()) {
@@ -204,7 +214,7 @@ public class ServerCommunication {
 	
 	/** Ask the server to create a game */
 	public boolean createGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.CREATE_GAME, name);
+		sendMessage(Constants.CREATE_GAME, name);
 		
 		// Wait for result
 		waitOn(create);
@@ -214,7 +224,7 @@ public class ServerCommunication {
 	
 	/** Ask server to cancel a game */
 	public boolean cancelGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.CANCEL_GAME, name);
+		sendMessage(Constants.CANCEL_GAME, name);
 		
 		waitOn(cancel);
 		
@@ -223,7 +233,7 @@ public class ServerCommunication {
 	
 	/** Ask server to join a game */
 	public Game joinGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.JOIN_GAME, name);
+		sendMessage(Constants.JOIN_GAME, name);
 		
 		waitOn(join);
 		
@@ -236,7 +246,7 @@ public class ServerCommunication {
 	 * Asynchronous.  Notifies listener when game starts.
 	 */
 	public void startGame(String name) throws IOException {
-		ChannelHelper.sendString(server, Constants.START_GAME, name);
+		sendMessage(Constants.START_GAME, name);
 	}
 	
 	public static void main(String args[]) {
