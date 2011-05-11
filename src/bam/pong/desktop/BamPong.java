@@ -1,15 +1,10 @@
 package bam.pong.desktop;
 
-import java.awt.Dimension;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
-import bam.pong.Ball;
 import bam.pong.Client;
-import bam.pong.Engine;
-import bam.pong.Paddle;
 import bam.pong.PeerCommunication;
 import bam.pong.ServerCommunication;
 
