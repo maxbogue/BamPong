@@ -161,8 +161,8 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	}
 	
 	public void gameCanceled() {
-//		game = null;
-		// Stop the engine
+		engine.stop();
+		game = null;
 	}
 	
 	public void newBall(int id) {
