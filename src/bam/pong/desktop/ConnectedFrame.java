@@ -1,5 +1,6 @@
 package bam.pong.desktop;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -12,6 +13,7 @@ import javax.swing.JPanel;
 
 import bam.pong.BamException;
 import bam.pong.Client;
+import bam.pong.Engine;
 import bam.pong.ServerListener;
 
 @SuppressWarnings("serial")
@@ -30,7 +32,9 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 		client.serverComm.addListener(this);
 		
 		GameField gf = new GameField();
-		client.engine.addListener(gf);
+		Engine e = client.engine;
+		e.addListener(gf);
+		gf.setPreferredSize(new Dimension(e.getWidth(), e.getHeight()));
 		bpv = new BamPongView(gf);
 		
 		// Setup UI

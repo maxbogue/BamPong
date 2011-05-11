@@ -128,4 +128,9 @@ public class Engine implements Runnable {
 		return balls;
 	}
 	
+	/** Returns the width of the playing field */
+	public int getWidth() { return width; }
+	
+	/** Returns the height of the playing field */
+	public int getHeight() { return height; }
 }
