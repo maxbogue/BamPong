@@ -76,8 +76,7 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 			throw new BamException("Not in a game!");
 		
 		try {
-			if (!serverComm.cancelGame(game.name))
-				throw new BamException("Couldn't cancel game.");
+			serverComm.cancelGame(game.name);
 		} catch (IOException e) {
 			throw new BamException("Error talking to server");
 		}
@@ -136,5 +135,9 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	
 	public void gameStarted() {
 		engine.start();
+	}
+	
+	public void gameCanceled() {
+		game = null;
 	}
 }

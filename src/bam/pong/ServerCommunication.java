@@ -130,9 +130,7 @@ public class ServerCommunication {
 	
 	private static List<String> games = new ArrayList<String>(); // LIST_GAMES
 	private static byte create[] = new byte[1];                  // CREATE_GAME
-	private static byte cancel[] = new byte[1];                  // CANCEL_GAME
 	private static Game join[]   = new Game[1];                  // JOIN_GAME
-	private static byte start[]  = new byte[1];                  // START_GAME
 	
 	private void wakeUp(Object o) {
 		synchronized (o) {
@@ -158,10 +156,6 @@ public class ServerCommunication {
 		case Constants.CREATE_GAME:
 			create[0] = ChannelHelper.getByte(server);
 			wakeUp(create);
-			break;
-		case Constants.CANCEL_GAME:
-			cancel[0] = ChannelHelper.getByte(server);
-			wakeUp(cancel);
 			break;
 		case Constants.JOIN_GAME:
 			boolean success = ChannelHelper.getByte(server) != 0;
@@ -190,6 +184,9 @@ public class ServerCommunication {
 			if(listener != null)
 				listener.gameStarted();
 			break;
+		case Constants.GAME_CANCELED:
+			if(listener != null)
+				listener.gameCanceled();
 		default:
 			System.err.println("Unkown message type "+type);
 		}
@@ -222,13 +219,12 @@ public class ServerCommunication {
 		return create[0] != 0;
 	}
 	
-	/** Ask server to cancel a game */
-	public boolean cancelGame(String name) throws IOException {
+	/** Ask server to cancel a game
+	 *
+	 * Asynchronous.  Notifies listener if current game is cancelled.
+	 */
+	public void cancelGame(String name) throws IOException {
 		sendMessage(Constants.CANCEL_GAME, name);
-		
-		waitOn(cancel);
-		
-		return cancel[0] != 0;
 	}
 	
 	/** Ask server to join a game */
