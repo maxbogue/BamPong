@@ -17,4 +17,6 @@ public class Constants {
 	public static final byte GAME_CANCELED = 6;
 	/** Server to Client: Have a ball */
 	public static final byte NEW_BALL = 7;
+	/** Client to Server: I dropped the ball. */
+	public static final byte BALL_DROPPED = 8;
 }

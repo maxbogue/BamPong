@@ -1,7 +1,6 @@
 package bam.pong;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
@@ -242,10 +241,13 @@ public class PeerCommunication {
 	}
 	
 	/** Send a ball to a peer. */
-	public void sendBall(Ball b, Peer p) throws IOException {
-		ByteBuffer msg = ByteBuffer.allocateDirect(5);
+	public void sendBall(Ball b, double position, Peer p) throws IOException {
+		ByteBuffer msg = ByteBuffer.allocateDirect(29); // type(1), id(4), position(8), dx(8), dy(8)
 		msg.put(MSG_BALL);
 		msg.putInt(b.id);
+		msg.putDouble(position);
+		msg.putDouble(b.dx);
+		msg.putDouble(b.dy);
 		msg.flip();
 		
 		SocketChannel sock = sockets.get(p);
@@ -288,8 +290,11 @@ public class PeerCommunication {
 			break;
 		case MSG_BALL:
 			int id = ChannelHelper.getInt(c);
+			double position = ChannelHelper.getDouble(c);
+			double dx       = ChannelHelper.getDouble(c);
+			double dy       = ChannelHelper.getDouble(c);
 			if (listener != null)
-				listener.receiveBall(id);
+				listener.receiveBall(id, position, dx, dy);
 			break;
 //		Dropped ball
 //			Informative to all peers & server
