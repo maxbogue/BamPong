@@ -300,21 +300,4 @@ public class PeerCommunication {
 			System.err.println("Unknown peer message: " + type);
 		}
 	}
-	
-	// Test method.  Attempts to establish a connection and send a debug message.
-	public static void main(String args[]) {
-		try {
-			PeerCommunication pc1 = new PeerCommunication("p1");
-			pc1.setId(1);
-
-			PeerCommunication pc2 = new PeerCommunication("p2");
-			pc2.setId(2);
-			
-			pc2.connectToPeer(new Peer(1, "p1", InetAddress.getLocalHost(), pc1.getPort()));
-			Thread.sleep(500);
-			pc1.sendDebug("Hello, peers!");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 }
