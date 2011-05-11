@@ -47,8 +47,10 @@ public class GUI extends Activity implements ServerListener{
 	@Override
 	public void onStop() {
 		super.onStop();
-		serverComm.stop();
-		peerComm.stop();
+		if (serverComm != null)
+			serverComm.stop();
+		if (peerComm != null)
+			peerComm.stop();
 	}
 
 	/** Called when the activity is first created. */
