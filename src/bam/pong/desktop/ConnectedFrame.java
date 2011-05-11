@@ -12,9 +12,10 @@ import javax.swing.JPanel;
 
 import bam.pong.BamException;
 import bam.pong.Client;
+import bam.pong.ServerListener;
 
 @SuppressWarnings("serial")
-public class ConnectedFrame extends JFrame {
+public class ConnectedFrame extends JFrame implements ServerListener {
 	private Client client;
 	private JButton create = new JButton("Create a game");
 	private JButton join   = new JButton("Join a game");
@@ -26,6 +27,7 @@ public class ConnectedFrame extends JFrame {
 		super("BAM! Pong");
 		
 		client = c;
+		client.serverComm.addListener(this);
 		
 		GameField gf = new GameField();
 		client.engine.addListener(gf);
@@ -112,8 +114,8 @@ public class ConnectedFrame extends JFrame {
 		
 		try {
 			client.joinGame(game);
-			bpv.setVisible(true);
-			this.setVisible(false);
+			join.setEnabled(false);
+			start.setEnabled(false);
 		} catch (BamException e) {
 			showError(e);
 		}
@@ -130,10 +132,27 @@ public class ConnectedFrame extends JFrame {
 	private void startGame() {
 		try {
 			client.startGame();
-			bpv.setVisible(true);
-			this.setVisible(false);
+			join.setEnabled(false);
+			start.setEnabled(false);
+			
 		} catch (BamException e) {
 			showError(e);
 		}
+	}
+
+	@Override
+	public void gameStarted() {
+		client.serverComm.removeListener(this);
+		bpv.setVisible(true);
+		this.setVisible(false);
+	}
+
+	@Override
+	public void gameCanceled() {
+		JOptionPane.showMessageDialog(this, "Game cancelled");
+		join.setEnabled(true);
+		create.setEnabled(true);
+		cancel.setEnabled(false);
+		start.setEnabled(false);
 	}
 }

@@ -23,7 +23,8 @@ public class ServerCommunication {
 	private Queue<ByteBuffer> outbox; // messages to send
 	private int id;                   // ID from server
 	
-	private ServerListener listener = null; // Thing to notify on game start;
+	// Things to notify on async game events
+	private List<ServerListener> listeners = new ArrayList<ServerListener>();
 	
 	private static final Charset utf8 = Charset.forName("UTF-8");
 	
@@ -62,10 +63,12 @@ public class ServerCommunication {
 		watcher.start();
 	}
 	
-	public ServerListener setListener(ServerListener listener) {
-		ServerListener old = listener;
-		this.listener = listener;
-		return old;
+	public void addListener(ServerListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void removeListener(ServerListener listener) {
+		listeners.remove(listener);
 	}
 	
 	/** Returns the ID the server gave us. */
@@ -181,11 +184,11 @@ public class ServerCommunication {
 			wakeUp(join);
 			break;
 		case Constants.START_GAME:
-			if(listener != null)
+			for ( ServerListener listener : listeners )
 				listener.gameStarted();
 			break;
 		case Constants.GAME_CANCELED:
-			if(listener != null)
+			for ( ServerListener listener : listeners )
 				listener.gameCanceled();
 		default:
 			System.err.println("Unkown message type "+type);

@@ -17,8 +17,8 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	public final int w, h, pw, ph;
 	
 	public Engine engine;
+	public ServerCommunication serverComm;
 
-	private ServerCommunication serverComm;
 	private PeerCommunication peerComm;
 	private Paddle paddle;
 	private Game game;
@@ -30,6 +30,9 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 		this.ph = ph;
 		this.serverComm = serverComm;
 		this.peerComm = peerComm;
+		
+		this.serverComm.addListener(this);
+		this.peerComm.setListener(this);
 		
 		paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
 		engine = new Engine(w, h, paddle);
