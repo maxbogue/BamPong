@@ -173,11 +173,13 @@ public class ServerCommunication {
 				int num = ChannelHelper.getInt(server);
 				while(num-- > 0) {
 					int id = ChannelHelper.getInt(server);
-					ByteBuffer ip = ChannelHelper.readBytes(server, 4);
+					ByteBuffer ip_buff = ChannelHelper.readBytes(server, 4);
 					int port = ChannelHelper.getInt(server);
 					String name = ChannelHelper.getString(server);
 					
-					InetAddress addr = InetAddress.getByAddress(ip.array());
+					byte ip[] = new byte[4];
+					ip_buff.get(ip);
+					InetAddress addr = InetAddress.getByAddress(ip);
 					Peer peer = new Peer(id, name, addr, port);
 					game.peers.put(id, peer);
 				}
