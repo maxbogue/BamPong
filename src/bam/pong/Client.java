@@ -87,7 +87,14 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	}
 	
 	public void startGame() throws BamException {
-		engine.start();
+		if (game == null)
+			throw new BamException("Not in a game!");
+		
+		try {
+			serverComm.startGame(game.name);
+		} catch (IOException e) {
+			throw new BamException("Error talking to server");
+		}
 	}
 
 	public void movePaddleTo(int x) {
