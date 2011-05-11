@@ -220,7 +220,7 @@ public class Server {
 			if (games.containsKey(name) && !games.get(name).hasBegun()) {
 				log("Cancelled game "+name);
 				ChannelHelper.sendBoolean(c, k, true);
-				games.get(name).cancel();
+				games.remove(name).cancel();
 			} else {
 				log("Refused to cancel game "+name);
 				ChannelHelper.sendBoolean(c, k, false);
