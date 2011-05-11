@@ -80,6 +80,8 @@ public class Engine implements Runnable {
 			if (b.x <= 0 || b.x + b.D >= width) {
 				// Ball hit a side.
 				b.dx *= -1;
+				if (b.x <= 0) b.x = 0;
+				if (b.x + b.D >= width) b.x = width - b.D;
 			}
 			if (b.y - b.D >= height) {
 				// Ball fell off bottom of screen.
@@ -95,7 +97,7 @@ public class Engine implements Runnable {
 					&& b.y + b.D >= p.y && b.y + b.D < p.y + p.h/2)
 			{
 				// Ball hit top of paddle.
-				b.dx += (b.x - (p.x + p.w/2)) / 3;
+				b.dx += (b.x - (p.x + p.w/2)) / 4 / width;
 				b.y = p.y - b.D;
 				b.dy *= -1;
 			} else if (b.x + b.D >= p.x && b.x + b.D < p.x + p.w/2
@@ -111,8 +113,8 @@ public class Engine implements Runnable {
 				b.x = p.x + p.w;
 				if (b.dx < 0) b.dx *= -1;
 			}
-			b.x += b.dx / UPDATES_PER_SEC;
-			b.y += b.dy / UPDATES_PER_SEC;
+			b.x += b.dx * width / UPDATES_PER_SEC;
+			b.y += b.dy * height / UPDATES_PER_SEC;
 		}
 	}
 	

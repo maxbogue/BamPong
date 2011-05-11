@@ -13,7 +13,7 @@ public class Ball {
 	/** Current location of the ball. */
 	public double x, y;
 
-	/** Movement vector in pixels/second. */
+	/** Movement vector in % of screen/second. */
 	public double dx, dy;
 
 	/** Ball diameter in pixels. */
