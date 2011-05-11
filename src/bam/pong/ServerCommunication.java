@@ -195,6 +195,7 @@ public class ServerCommunication {
 		case Constants.GAME_CANCELED:
 			for ( ServerListener listener : listeners )
 				listener.gameCanceled();
+			break;
 		default:
 			System.err.println("Unkown message type "+type);
 		}
