@@ -53,6 +53,12 @@ public class ChannelHelper {
 		ByteBuffer b = readBytes(c, 4);
 		return b.getInt();
 	}
+
+	/** Reads a single double from a channel */
+	public static double getDouble(SocketChannel c) throws IOException {
+		ByteBuffer b = readBytes(c, 8);
+		return b.getDouble();
+	}
 	
 	/** Reads a string from a channel.
 	 * 

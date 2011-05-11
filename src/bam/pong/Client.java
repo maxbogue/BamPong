@@ -119,7 +119,7 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 			it.next();
 		Peer peer = it.next();
 		try {
-			peerComm.sendBall(b, peer);
+			peerComm.sendBall(b, ((double) b.x) / w, peer);
 		} catch (IOException e) {
 			// TODO: Ball gets forgotten
 			e.printStackTrace();
@@ -137,8 +137,9 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	// PeerListener //
 	//////////////////
 	
-	public void receiveBall(int id) {
-		engine.addBall(new Ball(id, w/2, 10, 0, 40, 15));
+	public void receiveBall(int id, double position, double dx, double dy) {
+		if (dy < 0) dy *= -1;  // Make sure it's going down.
+		engine.addBall(new Ball(id, position * w, 1, dx, dy, 15));
 	}
 	
 	@Override
@@ -164,7 +165,7 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 		engine.stop();
 		game = null;
 	}
-	
+
 	public void newBall(int id) {
 		engine.addBall(new Ball(id, w/2, 10, 0, 40, 15));
 	}
