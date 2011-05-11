@@ -60,13 +60,18 @@ public class Server {
 		System.out.println(msg);
 	}
 	
-	public void run() throws IOException {
+	public void run() {
 		Set<SocketChannel> handShaken  = new HashSet<SocketChannel>();
 		Set<SocketChannel> new_sockets = new HashSet<SocketChannel>();
 
-		selector = Selector.open();
-		incoming.configureBlocking(false);
-		incoming.register( selector, SelectionKey.OP_ACCEPT );
+		try {
+			selector = Selector.open();
+			incoming.configureBlocking(false);
+			incoming.register( selector, SelectionKey.OP_ACCEPT );
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}
 
 		log("Ready for connections on port "+incoming.socket().getLocalPort());
 		while ( incoming.isOpen() || !clients.isEmpty() ) {
@@ -110,25 +115,25 @@ public class Server {
 						c.close();
 					}
 				}
-				
-				// Check for closed sockets
-				for (SocketChannel socket : clients.keySet()) {
-					if (!socket.isOpen()) {
-						clients.remove(socket);
-						// TODO: Reconnect, propose drop
-					}
-				}
-				for (SocketChannel socket : handShaken)
-					if (!socket.isOpen())
-						handShaken.remove(socket);
-				for (SocketChannel socket : new_sockets)
-					if (!socket.isOpen())
-						handShaken.remove(socket);
 			} catch (IOException e) {
 				// TODO Handle this better.  In mean time, just keep going.
-				System.err.println(e);
 				e.printStackTrace();
 			}
+
+			// Check for closed clients
+			for (SocketChannel socket : clients.keySet()) {
+				if (!socket.isOpen()) {
+					Client client = clients.remove(socket);
+				}
+			}
+			
+			// Check for other closed sockets
+			for (SocketChannel socket : handShaken)
+				if (!socket.isOpen())
+					handShaken.remove(socket);
+			for (SocketChannel socket : new_sockets)
+				if (!socket.isOpen())
+					handShaken.remove(socket);
 		}
 		
 		// Close all new sockets

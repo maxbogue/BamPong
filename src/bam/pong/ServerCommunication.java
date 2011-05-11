@@ -255,11 +255,7 @@ public class ServerCommunication {
 			// Get me a server.
 			Thread thread = new Thread() {
 				public void run() {
-					try {
-						server.run();
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					server.run();
 				}
 			};
 			thread.start();
