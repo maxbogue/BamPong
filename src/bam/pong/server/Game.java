@@ -29,6 +29,7 @@ public class Game {
 			SocketChannel c = client.getChannel();
 			try {
 				ChannelHelper.sendAll(c, b);
+				b.rewind();
 			} catch (IOException e) {
 				// TODO
 				e.printStackTrace();
