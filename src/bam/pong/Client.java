@@ -142,9 +142,9 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	// PeerListener //
 	//////////////////
 	
-	public void receiveBall(int id, double position, double dx, double dy) {
+	public void receiveBall(int id, double position, double dx, double dy, int d) {
 		if (dy < 0) dy *= -1;  // Make sure it's going down.
-		engine.addBall(new Ball(id, position * w, 1, dx, dy, 15));
+		engine.addBall(new Ball(id, position * w, -d, dx, dy, d));
 	}
 	
 	@Override
@@ -171,7 +171,7 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 		game = null;
 	}
 
-	public void newBall(int id) {
-		engine.addBall(new Ball(id, w/2, 10, 0, 40, 15));
+	public void newBall(int id, double pos, double dx, double dy, int d) {
+		engine.addBall(new Ball(id, pos * w, -d, dx, dy, d));
 	}
 }

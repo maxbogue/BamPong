@@ -166,7 +166,7 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 	}
 
 	@Override
-	public void newBall(int id) {
+	public void newBall(int id, double pos, double dx, double dy, int d) {
 		// This class doesn't care.
 	}
 }

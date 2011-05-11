@@ -302,18 +302,8 @@ public class Server {
 			}
 			break;
 		case Constants.BALL_DROPPED:
-			int id = ChannelHelper.getInt(c);
-			Client dropTo = ids2clients.get(id);
-			if (dropTo == null)
-				break;
-			
-			b = ByteBuffer.allocate(5);
-			b.put(Constants.NEW_BALL);
-			b.putInt(id);
-			b.flip();
-			
-			ChannelHelper.sendAll(dropTo.getChannel(), b);
-			
+			ChannelHelper.getInt(c); // Ball id that was dropped...
+			clients.get(c).getGame().sendNewBall();
 			break;
 		default:
 			System.err.println("Invalid key byte: " + k);

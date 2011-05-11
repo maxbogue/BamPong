@@ -242,12 +242,13 @@ public class PeerCommunication {
 	
 	/** Send a ball to a peer. */
 	public void sendBall(Ball b, double position, Peer p) throws IOException {
-		ByteBuffer msg = ByteBuffer.allocateDirect(29); // type(1), id(4), position(8), dx(8), dy(8)
+		ByteBuffer msg = ByteBuffer.allocateDirect(33); // type(1), id(4), position(8), dx(8), dy(8)
 		msg.put(MSG_BALL);
 		msg.putInt(b.id);
 		msg.putDouble(position);
 		msg.putDouble(b.dx);
 		msg.putDouble(b.dy);
+		msg.putInt(b.D);
 		msg.flip();
 		
 		SocketChannel sock = sockets.get(p);
@@ -293,8 +294,9 @@ public class PeerCommunication {
 			double position = ChannelHelper.getDouble(c);
 			double dx       = ChannelHelper.getDouble(c);
 			double dy       = ChannelHelper.getDouble(c);
+			int D			= ChannelHelper.getInt(c);
 			if (listener != null)
-				listener.receiveBall(id, position, dx, dy);
+				listener.receiveBall(id, position, dx, dy, D);
 			break;
 //		Dropped ball
 //			Informative to all peers & server

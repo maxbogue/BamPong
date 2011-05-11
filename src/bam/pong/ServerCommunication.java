@@ -206,9 +206,16 @@ public class ServerCommunication {
 				listener.gameCanceled();
 			break;
 		case Constants.NEW_BALL:
-			int id = ChannelHelper.getInt(server);
+			ByteBuffer bb = ByteBuffer.allocateDirect(32);
+			server.read(bb);
+			bb.flip();
+			int id = bb.getInt();
+			double pos = bb.getDouble();
+			double dx = bb.getDouble();
+			double dy = bb.getDouble();
+			int d = bb.getInt();
 			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
-				listener.newBall(id);
+				listener.newBall(id, pos, dx, dy, d);
 			break;
 		default:
 			System.err.println("Unknown message type "+type);
