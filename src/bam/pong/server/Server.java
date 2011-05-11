@@ -1,6 +1,7 @@
 package bam.pong.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.SelectionKey;
@@ -48,7 +49,7 @@ public class Server {
 	
 	public Server(int port) throws IOException {
 		incoming = ServerSocketChannel.open();
-		incoming.socket().bind(null, port);
+		incoming.socket().bind(new InetSocketAddress(port));
 	}
 	
 	public int getPort() {
@@ -290,7 +291,7 @@ public class Server {
 	
 	public static void main(String args[]) {
 		try {
-			Server server = new Server();
+			Server server = new Server(1234);
 			server.run();
 		} catch (IOException e) {
 			e.printStackTrace();
