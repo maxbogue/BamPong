@@ -36,6 +36,7 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 		
 		paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
 		engine = new Engine(w, h, paddle);
+		engine.addListener(this);
 	}
 
 	//////////////////
