@@ -75,28 +75,39 @@ public class Engine implements Runnable {
 	
 	/** Updates the position of each ball and triggers a view update. */
 	private void updateBallPositions() {
-		for (Ball b : new HashSet<Ball>(balls)) {
-//			double dx = b.dx / UPDATES_PER_SEC;
-//			double dy = b.dy / UPDATES_PER_SEC;
+		Paddle p = paddle;
+		for (Ball b : balls.toArray(new Ball[0])) {
 			if (b.x <= 0 || b.x + b.D >= width) {
-				// Bounce off sides.
+				// Ball hit a side.
 				b.dx *= -1;
-			} else if (b.y - b.D >= height) {
-				// Detect if ball fell off bottom of screen.
+			}
+			if (b.y - b.D >= height) {
+				// Ball fell off bottom of screen.
 				for (EngineListener el : listeners) el.ballDropped(b);
 				balls.remove(b);
 			} else if (b.y  <= 0) {
-				// Detect if ball went off the top of the screen.
+				// Ball went off the top of the screen.
 				for (EngineListener el : listeners) el.sendBall(b);
 				balls.remove(b);
-			} else if (b.x + b.D > paddle.x && b.x < paddle.x + paddle.w && b.y + b.D > paddle.y) {
-				// Detect paddle collision.
-				if (b.y + 0.5 * b.D > paddle.y) {
-					b.dx *= -1;
-				} else {
-					b.dx += (b.x - (paddle.x + paddle.w/2)) / 3;
-				}
-				b.dy = -1 * Math.abs(b.dy);
+			} else if (b.x + b.D >= p.x && b.x <= p.x + p.w
+					&& b.y + b.D >= p.y && b.y + b.D < p.y + p.h/2)
+			{
+				// Ball hit top of paddle.
+				b.dx += (b.x - (p.x + p.w/2)) / 3;
+				b.y = p.y - b.D;
+				b.dy *= -1;
+			} else if (b.x + b.D >= p.x && b.x + b.D < p.x + p.w/2
+					&& b.y + b.D >= p.y && b.y + b.D <= p.y + p.h)
+			{
+				// Ball hit left paddle edge.
+				b.x = p.x - b.D;
+				if (b.dx > 0) b.dx *= -1;
+			} else if (b.x <= p.x + p.w && b.x > p.x + p.w/2
+					&& b.y + b.D >= p.y && b.y + b.D <= p.y + p.h)
+			{
+				// Ball hit right paddle edge.
+				b.x = p.x + p.w;
+				if (b.dx < 0) b.dx *= -1;
 			}
 			b.x += b.dx / UPDATES_PER_SEC;
 			b.y += b.dy / UPDATES_PER_SEC;
