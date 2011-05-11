@@ -92,7 +92,7 @@ public class ServerCommunication {
 		sendMessage(b);
 	}
 	
-	private Thread watcher = new Thread() {
+	private Thread watcher = new Thread("Server Communication") {
 		public void run() {
 			while (server.isOpen()) {
 				try {

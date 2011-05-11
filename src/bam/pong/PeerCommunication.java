@@ -133,7 +133,7 @@ public class PeerCommunication {
 		incoming.register(selector, SelectionKey.OP_ACCEPT );
 		
 		// Start listener thread
-		watcher = new Thread(new Watcher());
+		watcher = new Thread(new Watcher(), "Peer Communication");
 		watcher.start();
 	}
 	
