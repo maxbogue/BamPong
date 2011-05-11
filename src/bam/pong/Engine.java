@@ -38,7 +38,7 @@ public class Engine implements Runnable {
 	
 	/** Makes an engine using the given width and height. */
 	public Engine(int width, int height, Paddle paddle) {
-		ballMover = new Thread(this);
+		ballMover = new Thread(this, "Game Engine");
 		this.width = width;
 		this.height = height;
 		this.paddle = paddle;
