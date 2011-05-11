@@ -72,6 +72,8 @@ public class PeerCommunication {
 							Peer peer = peers.get(socket);
 							peers.remove(socket);
 							sockets.remove(peer);
+							if(listener != null)
+								listener.dropPeer(peer);
 							// TODO: Reconnect, propose drop
 						}
 					}
@@ -234,6 +236,9 @@ public class PeerCommunication {
 		new_sockets.remove(c);
 		peers.put(c, peer);
 		sockets.put(peer, c);
+		
+		if(listener != null)
+			listener.addPeer(peer);
 	}
 	
 	/** Send a ball to a peer. */
@@ -241,6 +246,7 @@ public class PeerCommunication {
 		ByteBuffer msg = ByteBuffer.allocateDirect(5);
 		msg.put(MSG_BALL);
 		msg.putInt(b.id);
+		msg.flip();
 		
 		SocketChannel sock = sockets.get(p);
 		if( sock == null )

@@ -141,6 +141,17 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 		engine.addBall(new Ball(id, w/2, 10, 0, 40, 15));
 	}
 	
+	@Override
+	public void addPeer(Peer p) {
+		game.peers.put(p.getId(), p);
+	}
+
+	@Override
+	public void dropPeer(Peer p) {
+		game.peers.remove(p.getId());
+		// TODO reconnection or something?
+	}
+
 	////////////////////
 	// ServerListener //
 	////////////////////
@@ -150,7 +161,8 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	}
 	
 	public void gameCanceled() {
-		game = null;
+//		game = null;
+		// Stop the engine
 	}
 	
 	public void newBall(int id) {
