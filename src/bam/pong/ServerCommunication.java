@@ -191,11 +191,11 @@ public class ServerCommunication {
 			wakeUp(join);
 			break;
 		case Constants.START_GAME:
-			for ( ServerListener listener : listeners )
+			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
 				listener.gameStarted();
 			break;
 		case Constants.GAME_CANCELED:
-			for ( ServerListener listener : listeners )
+			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
 				listener.gameCanceled();
 			break;
 		default:
