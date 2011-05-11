@@ -85,6 +85,9 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 		String name = JOptionPane.showInputDialog(this,
 				"Enter name for game");
 		
+		if (name == null)
+			return;
+		
 		try {
 			client.createGame(name);
 			create.setEnabled(false);
