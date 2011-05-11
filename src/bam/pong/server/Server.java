@@ -123,7 +123,7 @@ public class Server {
 
 			// Check for closed clients
 			List<String> dead_games = new ArrayList<String>();
-			for (SocketChannel socket : clients.keySet()) {
+			for (SocketChannel socket : clients.keySet().toArray(new SocketChannel[0])) {
 				if (!socket.isOpen()) {
 					Client client = clients.remove(socket);
 					log("Player "+client.getName()+" dropped");
