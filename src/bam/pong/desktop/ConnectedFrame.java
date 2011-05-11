@@ -20,11 +20,16 @@ public class ConnectedFrame extends JFrame {
 	private JButton join   = new JButton("Join a game");
 	private JButton cancel = new JButton("Cancel the game");
 	private JButton start  = new JButton("Start the game");
+	private BamPongView bpv;
 	
 	public ConnectedFrame(Client c) {
 		super("BAM! Pong");
 		
 		client = c;
+		
+		GameField gf = new GameField();
+		client.engine.addListener(gf);
+		bpv = new BamPongView(gf);
 		
 		// Setup UI
 		JPanel content = new JPanel();
@@ -91,7 +96,21 @@ public class ConnectedFrame extends JFrame {
 			showError(e);
 		}
 		
-		// TODO: Display a list of games and ask the user to pick one
+		String game = (String) JOptionPane.showInputDialog(this,
+				"Choose a game to join", "Join Game",
+				JOptionPane.QUESTION_MESSAGE, null,
+				games.toArray(), games.get(0));
+		
+		if (game == null)
+			return; // User canceled
+		
+		try {
+			client.joinGame(game);
+			bpv.setVisible(true);
+			this.setVisible(false);
+		} catch (BamException e) {
+			showError(e);
+		}
 	}
 
 	private void cancelGame() {
@@ -103,6 +122,12 @@ public class ConnectedFrame extends JFrame {
 	}
 
 	private void startGame() {
-		// TODO: Start the game
+		try {
+			client.startGame();
+			bpv.setVisible(true);
+			this.setVisible(false);
+		} catch (BamException e) {
+			showError(e);
+		}
 	}
 }
