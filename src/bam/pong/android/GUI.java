@@ -171,9 +171,9 @@ public class GUI extends Activity implements ServerListener{
 	}
 
 	@Override
-	public void newBall(int id) {
+	public void newBall(int id, double pos, double dx, double dy, int d) {
 		// TODO Auto-generated method stub
-
+		
 	}
 	
 	
