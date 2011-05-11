@@ -83,11 +83,13 @@ public class Engine implements Runnable {
 			}
 			if (b.y - b.D >= height) {
 				// Ball fell off bottom of screen.
-				for (EngineListener el : listeners) el.ballDropped(b);
+				for (EngineListener el : listeners)
+					el.ballDropped(b);
 				balls.remove(b);
-			} else if (b.y  <= 0) {
+			} else if (b.y < -b.D) {
 				// Ball went off the top of the screen.
-				for (EngineListener el : listeners) el.sendBall(b);
+				for (EngineListener el : listeners)
+					el.sendBall(b);
 				balls.remove(b);
 			} else if (b.x + b.D >= p.x && b.x <= p.x + p.w
 					&& b.y + b.D >= p.y && b.y + b.D < p.y + p.h/2)
@@ -97,13 +99,13 @@ public class Engine implements Runnable {
 				b.y = p.y - b.D;
 				b.dy *= -1;
 			} else if (b.x + b.D >= p.x && b.x + b.D < p.x + p.w/2
-					&& b.y + b.D >= p.y && b.y + b.D <= p.y + p.h)
+					&& b.y + b.D >= p.y && b.y <= p.y + p.h)
 			{
 				// Ball hit left paddle edge.
 				b.x = p.x - b.D;
 				if (b.dx > 0) b.dx *= -1;
 			} else if (b.x <= p.x + p.w && b.x > p.x + p.w/2
-					&& b.y + b.D >= p.y && b.y + b.D <= p.y + p.h)
+					&& b.y + b.D >= p.y && b.y <= p.y + p.h)
 			{
 				// Ball hit right paddle edge.
 				b.x = p.x + p.w;

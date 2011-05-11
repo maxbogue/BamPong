@@ -39,7 +39,8 @@ public class GameField extends JComponent implements EngineListener, KeyListener
 		for ( Ball b : balls ) {
 			g2.fillOval((int)b.x, (int)b.y, b.D, b.D);
 		}
-		if (paddle != null) g2.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
+		if (paddle != null)
+			g2.fillRect(paddle.x, paddle.y, paddle.w, paddle.h);
 	}
 
 	@Override
