@@ -269,7 +269,7 @@ public class PeerCommunication {
 		Peer peer = peers.get(c);
 
 		ByteBuffer b = ByteBuffer.allocateDirect(1);
-		if (c.read(b) == 0)
+		if (c.read(b) <= 0)
 			return; // No data?
 		b.flip();
 		byte type = b.get();
