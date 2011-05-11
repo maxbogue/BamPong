@@ -83,6 +83,8 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 		
 		try {
 			client.createGame(name);
+			create.setEnabled(false);
+			join.setEnabled(false);
 			start.setEnabled(true);
 			cancel.setEnabled(true);
 		} catch (BamException e) {
@@ -135,7 +137,6 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 			client.startGame();
 			join.setEnabled(false);
 			start.setEnabled(false);
-			
 		} catch (BamException e) {
 			showError(e);
 		}
