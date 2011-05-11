@@ -19,7 +19,7 @@ public class Engine implements Runnable {
 	private boolean runThread = true;
 	
 	/** The thread that moves balls. */
-	private Thread ballMover;
+	private Thread ballMover = null;
 	
 	/** All balls in the game. */
 	private Set<Ball> balls = new HashSet<Ball>();
@@ -38,17 +38,26 @@ public class Engine implements Runnable {
 	
 	/** Makes an engine using the given width and height. */
 	public Engine(int width, int height, Paddle paddle) {
-		ballMover = new Thread(this, "Game Engine");
 		this.width = width;
 		this.height = height;
 		this.paddle = paddle;
 	}
 	
-	/** Starts the game engine. */
+	/** Starts a new game engine thread. */
 	public void start() {
-		ballMover.start();
+		if (ballMover == null) { 
+			ballMover = new Thread(this, "Game Engine");
+			ballMover.start();
+		}
 	}
 	
+	/** Stops the engine and clears balls. */
+	public void stop() {
+		runThread = false;
+		ballMover = null;
+		balls.clear();
+	}
+
 	private void updateField() {
 		updatePaddlePosition();
 		updateBallPositions();
