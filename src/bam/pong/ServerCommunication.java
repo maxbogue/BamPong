@@ -198,8 +198,13 @@ public class ServerCommunication {
 			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
 				listener.gameCanceled();
 			break;
+		case Constants.NEW_BALL:
+			int id = ChannelHelper.getInt(server);
+			for ( ServerListener listener : listeners.toArray(new ServerListener[0]) )
+				listener.newBall(id);
+			break;
 		default:
-			System.err.println("Unkown message type "+type);
+			System.err.println("Unknown message type "+type);
 		}
 	}
 	

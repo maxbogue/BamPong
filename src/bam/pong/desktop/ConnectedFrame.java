@@ -161,4 +161,9 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 		cancel.setEnabled(false);
 		start.setEnabled(false);
 	}
+
+	@Override
+	public void newBall(int id) {
+		// This class doesn't care.
+	}
 }

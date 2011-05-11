@@ -281,7 +281,7 @@ public class PeerCommunication {
 		case MSG_BALL:
 			int id = ChannelHelper.getInt(c);
 			if (listener != null)
-				listener.newBall(id);
+				listener.receiveBall(id);
 			break;
 //		Dropped ball
 //			Informative to all peers & server

@@ -136,8 +136,8 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	// PeerListener //
 	//////////////////
 	
-	public void newBall(int id) {
-		engine.addBall(new Ball(id, w/2, 0, 0, -40, 15));
+	public void receiveBall(int id) {
+		engine.addBall(new Ball(id, w/2, 10, 0, 40, 15));
 	}
 	
 	////////////////////
@@ -150,5 +150,9 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	
 	public void gameCanceled() {
 		game = null;
+	}
+	
+	public void newBall(int id) {
+		engine.addBall(new Ball(id, w/2, 10, 0, 40, 15));
 	}
 }

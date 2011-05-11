@@ -1,5 +1,5 @@
 package bam.pong;
 
 public interface PeerListener {
-	public void newBall(int id);
+	public void receiveBall(int id);
 }
