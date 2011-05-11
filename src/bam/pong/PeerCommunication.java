@@ -313,4 +313,19 @@ public class PeerCommunication {
 			System.err.println("Unknown peer message: " + type);
 		}
 	}
+	
+	public void stop() {
+		try {
+			incoming.close();
+		} catch (IOException e1) {
+			// Ignore
+		}
+		for (SocketChannel socket : peers.keySet())
+			try {
+				socket.close();
+			} catch (IOException e) {
+				// Ignore
+			}
+		peers.clear();
+	}
 }

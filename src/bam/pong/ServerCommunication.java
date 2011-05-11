@@ -280,4 +280,12 @@ public class ServerCommunication {
 	public void ballDropped(Ball b) throws IOException {
 		sendMessage(Constants.BALL_DROPPED, b.id);
 	}
+	
+	public void stop() {
+		try {
+			server.close();
+		} catch (IOException e) {
+			// Ignore
+		}
+	}
 }
