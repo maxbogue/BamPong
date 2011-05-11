@@ -14,8 +14,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import bam.pong.server.Server;
-
 public class ServerCommunication {
 	private SocketChannel server;     // socket to the server
 //	private Peer me;                  // Our local peer information
