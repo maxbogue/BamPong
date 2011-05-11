@@ -117,8 +117,8 @@ public class ConnectedFrame extends JFrame implements ServerListener {
 		
 		try {
 			client.joinGame(game);
+			create.setEnabled(false);
 			join.setEnabled(false);
-			start.setEnabled(false);
 		} catch (BamException e) {
 			showError(e);
 		}
