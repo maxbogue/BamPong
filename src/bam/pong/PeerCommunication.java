@@ -208,8 +208,9 @@ public class PeerCommunication {
 		
 		// Assemble response 
 		ByteBuffer name = utf8.encode(nick);
-		message = ByteBuffer.allocateDirect(name.limit() + 6);
+		message = ByteBuffer.allocateDirect(name.limit() + 10); // id(4), port(4), name(2+limit)
 		message.putInt(id);
+		message.putInt(getPort());
 		ChannelHelper.putString(message, name);
 		message.flip();
 		
@@ -225,10 +226,11 @@ public class PeerCommunication {
 	// Called when someone who's just connected to us sends a messages
 	private void processNewSocket(SocketChannel c) throws IOException {
 		int id      = ChannelHelper.getInt(c);
+		int port    = ChannelHelper.getInt(c);
 		String name = ChannelHelper.getString(c);
 		
 		// Move to connected peers lists
-		Peer peer = new Peer(id, name);
+		Peer peer = new Peer(id, name, c.socket().getInetAddress(), port);
 		new_sockets.remove(c);
 		peers.put(c, peer);
 		sockets.put(peer, c);
