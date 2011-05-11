@@ -55,6 +55,10 @@ public class Server {
 		return incoming.socket().getLocalPort();
 	}
 	
+	private void log(String msg) {
+		System.out.println(msg);
+	}
+	
 	public void run() throws IOException {
 		Set<SocketChannel> handShaken  = new HashSet<SocketChannel>();
 		Set<SocketChannel> new_sockets = new HashSet<SocketChannel>();
@@ -63,6 +67,7 @@ public class Server {
 		incoming.configureBlocking(false);
 		incoming.register( selector, SelectionKey.OP_ACCEPT );
 
+		log("Ready for connections on port "+incoming.socket().getLocalPort());
 		while ( incoming.isOpen() || !clients.isEmpty() ) {
 			try {
 				// wait on selector
@@ -75,6 +80,7 @@ public class Server {
 					Channel c = k.channel();
 					
 					if ( c == incoming ) {
+						log("New connection.");
 						SocketChannel sc = incoming.accept();
 						new_sockets.add(sc);
 						sc.configureBlocking(false);
@@ -84,9 +90,11 @@ public class Server {
 						new_sockets.remove(sc);
 						ByteBuffer bb = ChannelHelper.readBytes(sc, 4);
 						if (utf8.decode(bb).toString().equals("bam?")) {
+							log("Handshaking...");
 							sc.write(utf8.encode("BAM!"));
 							handShaken.add(sc);
 						} else {
+							log("No hand to shake");
 							sc.close();
 						}
 					} else if ( handShaken.contains(c) ) {
@@ -167,6 +175,7 @@ public class Server {
 		
 		switch (k) {
 		case Constants.LIST_GAMES:
+			log("Listing "+games.size()+" game(s)");
 			b = ByteBuffer.allocateDirect(1024);
 			b.put(Constants.LIST_GAMES);
 			b.putInt(games.size());
@@ -192,8 +201,10 @@ public class Server {
 		case Constants.CREATE_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name)) {
+				log("Refused duplicate game "+name);
 				ChannelHelper.sendBoolean(c, k, false);
 			} else {
+				log("Creating game "+name);
 				games.put(name, new Game(name, clients.get(c)));
 				ChannelHelper.sendBoolean(c, k, true);
 			}
@@ -201,9 +212,11 @@ public class Server {
 		case Constants.CANCEL_GAME:
 			name = ChannelHelper.getString(c);
 			if (games.containsKey(name) && !games.get(name).hasBegun()) {
+				log("Cancelled game "+name);
 				ChannelHelper.sendBoolean(c, k, true);
 				games.get(name).cancel();
 			} else {
+				log("Refused to cancel game "+name);
 				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
@@ -246,15 +259,19 @@ public class Server {
 				b.flip();
 				ChannelHelper.sendAll(c, b);
 
-				games.get(name).addPlayer(clients.get(c));
+				log("Adding player to "+name);
+				game.addPlayer(clients.get(c));
 			} else {
+				log("Coudln't find game "+name+" to join");
 				ChannelHelper.sendBoolean(c, k, false);
 			}
 			break;
 		case Constants.START_GAME:
 			name = ChannelHelper.getString(c);
-			if(games.containsKey(name))
+			if(games.containsKey(name)) {
+				log("Starting game "+name);
 				games.get(name).startGame();
+			}
 			break;
 		default:
 			System.err.println("Invalid key byte: " + k);
@@ -267,6 +284,7 @@ public class Server {
 		int port = ChannelHelper.getInt(c);
 		int id = ++maxID;
 		ChannelHelper.putInt(c, id);
+		log("New Client: "+name);
 		return new Client(++maxID, name, port, c);
 	}
 	
