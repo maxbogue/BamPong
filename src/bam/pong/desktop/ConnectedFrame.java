@@ -96,6 +96,12 @@ public class ConnectedFrame extends JFrame {
 			showError(e);
 		}
 		
+		if (games.isEmpty()) {
+			JOptionPane.showMessageDialog(this,
+					"No games available.  Try creating one.");
+			return;
+		}
+		
 		String game = (String) JOptionPane.showInputDialog(this,
 				"Choose a game to join", "Join Game",
 				JOptionPane.QUESTION_MESSAGE, null,
