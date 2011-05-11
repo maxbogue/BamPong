@@ -33,7 +33,6 @@ public class BamPongView extends JFrame {
 		
 		add( this.field, BorderLayout.CENTER );
 		pack();
-		setVisible(true);
 	}
 	
 	static public void main(String args[]) {
