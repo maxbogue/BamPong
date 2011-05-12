@@ -43,7 +43,7 @@ public class PeerCommunication {
 					
 					// Handle all ready channels
 					Set<SelectionKey> selected = selector.selectedKeys();
-					for (SelectionKey k : (SelectionKey[])selected.toArray()) {
+					for (SelectionKey k : selected.toArray(new SelectionKey[0])) {
 						selected.remove(k); // We're handling it
 
 						if(!k.isValid()) continue; // Invalid?
