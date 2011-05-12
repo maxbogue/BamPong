@@ -32,7 +32,7 @@ public class BamPong {
 			}
 		} else {
 			String address = JOptionPane.showInputDialog(
-					"Enter server address", "129.21.63.105");
+					"Enter server address", "localhost");
 			if (address == null)
 				System.exit(1);
 			try {
