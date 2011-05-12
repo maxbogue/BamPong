@@ -21,7 +21,7 @@ import bam.pong.ServerCommunication;
 import bam.pong.ServerListener;
 
 
-public class GUI extends Activity implements ServerListener{
+public class GUI extends Activity implements ServerListener {
 
 	private  void showError(String when, String message) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
