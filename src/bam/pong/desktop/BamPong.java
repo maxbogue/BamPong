@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import javax.swing.JOptionPane;
+
 import bam.pong.Client;
 import bam.pong.PeerCommunication;
 import bam.pong.ServerCommunication;
@@ -15,26 +17,39 @@ public class BamPong {
 	
 	public static void main(String[] args) {
 		
-		// Process command line arguments
-		if(args.length < 2 || args.length > 3) {
-			System.out.println("java bam.pong.desktop.BamPong <nickname> <server IP> [port]");
-			System.exit(1);
-		}
-		
 		int port = 1234;
 		if( args.length == 3 ) {
 			port = Integer.parseInt(args[2]);
 		}
 		
 		InetAddress serverAddr = null;
-		try {
-			serverAddr = InetAddress.getByName(args[1]);
-		} catch (UnknownHostException e1) {
-			System.err.println("Couldn't find server " + args[1]);
-			System.exit(1);
+		if (args.length > 1) {
+			try {
+				serverAddr = InetAddress.getByName(args[1]);
+			} catch (UnknownHostException e1) {
+				System.err.println("Couldn't find server " + args[1]);
+				System.exit(1);
+			}
+		} else {
+			String address = JOptionPane.showInputDialog(
+					"Enter server address", "bcg2784.student.rit.edu");
+			try {
+				serverAddr = InetAddress.getByName(address);
+			} catch (UnknownHostException e1) {
+				JOptionPane.showMessageDialog(null,
+						"Couldn't find server " + address);
+				System.exit(1);
+			}
 		}
 		
-		String nick = args[0];
+		String nick = null;
+		if (args.length > 0) {
+			nick = args[0];
+		} else {
+			while (nick == null) {
+				nick = JOptionPane.showInputDialog("Enter Nickname:");
+			}
+		}
 		
 		// Start peer communications
 		PeerCommunication peerComm = null;
