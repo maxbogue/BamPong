@@ -35,32 +35,4 @@ public class BamPongView extends JFrame {
 		pack();
 	}
 	
-	static public void main(String args[]) {
-		int w = 300;
-		int h = 200;
-
-		int pw = 80; // Paddle width.
-		int ph = 15; // Paddle height.
-		
-		Paddle paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 5);
-		
-		// Ball size must be subtracted here so the balls look like they hit the wall.
-		Engine e = new Engine(w, h, paddle);
-		GameField f = new GameField();
-		f.setPreferredSize(new Dimension(w, h));
-		e.addListener(f);
-		
-		new BamPongView(f);
-		
-		int D = 15;
-		Ball bs[] = {
-				new Ball(1, 50, 25, 200, 40, D),
-				new Ball(2, 50, 75, -367, 100, D),
-				new Ball(3, 25, 25, 283, -200, D),
-				new Ball(4, 25, 25, 193, -20, D),
-				new Ball(5, 25, 25, 90, -40, D),
-			};
-		for( Ball b : bs ) e.addBall(b);
-		e.start();
-	}
 }
