@@ -89,6 +89,7 @@ public class Game {
 	public void addPlayer(Client c) {
 		players.add(c);
 		c.setGame(this);
+		c.resetScore();
 	}
 	
 	/** Removes a player from the game

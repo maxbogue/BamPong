@@ -311,7 +311,9 @@ public class Server {
 			break;
 		case Constants.BALL_DROPPED:
 			ChannelHelper.getInt(c); // Ball id that was dropped...
-			clients.get(c).getGame().sendNewBall();
+			Client client = clients.get(c);
+			client.upScore();
+			client.getGame().sendNewBall();
 			break;
 		default:
 			System.err.println("Invalid key byte: " + k);
@@ -329,8 +331,19 @@ public class Server {
 	}
 	
 	public static void main(String args[]) {
+		int port = 0;
+		if (args.length > 0) {
+			try {
+				port = Integer.parseInt(args[0]);
+			} catch (NumberFormatException e) {
+				System.err.println("Port must be a number.");
+				System.exit(1);
+			}
+		} else {
+			port = 1234;
+		}
 		try {
-			Server server = new Server(1234);
+			Server server = new Server(port);
 			server.run();
 		} catch (IOException e) {
 			e.printStackTrace();
