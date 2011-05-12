@@ -197,8 +197,16 @@ public class Server {
 	}
 	
 	public void processClientMessage(SocketChannel c) throws IOException {
-		byte k = ChannelHelper.getByte(c);
-		ByteBuffer b;
+		ByteBuffer b = ByteBuffer.allocate(1);
+		int read = c.read(b);
+		if( read < 0 ) {
+			c.close(); // Socket was closed
+			return;
+		}
+		if( read < 1 )
+			return; // no data
+		b.flip();
+		byte k = b.get();
 		String name;
 		
 		switch (k) {
