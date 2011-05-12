@@ -148,8 +148,10 @@ public class Server {
 					}
 				}
 			}
-			for( String name : dead_games )
-				games.remove(name);
+			for( String name : dead_games ) {
+				Game game = games.remove(name);
+				newGames.remove(game);
+			}
 			
 			// Check for other closed sockets
 			for (SocketChannel socket : handShaken)
