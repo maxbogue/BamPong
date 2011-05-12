@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AbsoluteLayout
+android:id="@+id/widget0"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+xmlns:android="http://schemas.android.com/apk/res/android"
+>
+<EditText
+android:id="@+id/Name"
+android:layout_width="199px"
+android:layout_height="wrap_content"
+android:text="ADD GAME NAME"
+android:textSize="18sp"
+android:layout_x="40px"
+android:layout_y="72px"
+>
+</EditText>
+<Button
+android:id="@+id/Create"
+android:layout_width="213px"
+android:layout_height="wrap_content"
+android:text="Create Game"
+android:layout_x="30px"
+android:layout_y="172px"
+>
+</Button>
+</AbsoluteLayout>

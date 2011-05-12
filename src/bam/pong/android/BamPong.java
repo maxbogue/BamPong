@@ -5,6 +5,7 @@ package bam.pong.android;
 //import bam.pong.Engine;
 
 import bam.pong.Ball;
+import bam.pong.Client;
 import bam.pong.Engine;
 import bam.pong.Paddle;
 import android.app.Activity;
@@ -39,33 +40,15 @@ public class BamPong extends Activity implements OnTouchListener {
 		DisplayMetrics display = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(display);
 
-		// Width and height of display in pixels.
-		int w = display.widthPixels;
-		int h = display.heightPixels;
-		
-		int pw = 80; // Paddle width.
-		int ph = 25; // Paddle height.
-		
-		paddle = new Paddle(pw, ph, 300, w/2 - pw/2, h - ph - 30);
-		
-		engine = new Engine(w, h, paddle);        
+		Client client = GUI.client;
+		engine = client.engine;
 
 		//New gamefield object
-		gf = new GameField(this, engine.getBalls(), paddle);
+		gf = new GameField(this, engine.getBalls(), engine.getPaddle());
 
 		gf.setOnTouchListener(this);
 		engine.addListener(gf);
 		setContentView(gf);
-		
-		Ball bs[] = {
-				new Ball(1, 50, 25, 200, 75, D),
-				new Ball(2, 50, 75, -367, 100, D),
-				new Ball(3, 25, 25, 283, -200, D),
-				new Ball(4, 25, 25, 193, -100, D),
-				new Ball(5, 25, 25, 90, -75, D),
-			};
-		for( Ball b : bs ) engine.addBall(b);
-		engine.start();
 	}
 
 	public boolean onKeyDown(int k, KeyEvent e) {
