@@ -19,6 +19,7 @@ public class Game {
 	private List<Client> players = new LinkedList<Client>();
 	private static Random rnd = new Random();
 	private int nextBallID = 1;
+	private boolean begun = false;
 	
 	public Game(String name, Client owner) {
 		this.name = name;
@@ -26,6 +27,7 @@ public class Game {
 	}
 	
 	public void startGame() {
+		begun = true;
 		// Tell everyone to start
 		ByteBuffer b = ByteBuffer.allocate(1);
 		b.put(Constants.START_GAME);
@@ -110,7 +112,7 @@ public class Game {
 	}
 	
 	public boolean hasBegun() {
-		return false;
+		return begun;
 	}
 	
 	public String getName() {

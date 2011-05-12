@@ -41,6 +41,8 @@ public class Server {
 	/** Existing games. */
 	private Map<String, Game> games = new HashMap<String, Game>();
 	
+	private Set<Game> newGames = new HashSet<Game>();
+	
 	/** For string encoding. */
 	private Charset utf8 = Charset.forName("UTF-8");
 	
@@ -211,11 +213,11 @@ public class Server {
 		
 		switch (k) {
 		case Constants.LIST_GAMES:
-			log("Listing "+games.size()+" game(s)");
+			log("Listing "+newGames.size()+" game(s)");
 			b = ByteBuffer.allocateDirect(1024);
 			b.put(Constants.LIST_GAMES);
-			b.putInt(games.size());
-			for (Game g : games.values()) {
+			b.putInt(newGames.size());
+			for (Game g : newGames) {
 				if (!ChannelHelper.putString(b,g.getName())) {
 					// Filled buffer, send what we have.
 					b.flip();
@@ -241,7 +243,9 @@ public class Server {
 				ChannelHelper.sendBoolean(c, k, false);
 			} else {
 				log("Creating game "+name);
-				games.put(name, new Game(name, clients.get(c)));
+				Game g = new Game(name, clients.get(c));
+				games.put(name, g);
+				newGames.add(g);
 				ChannelHelper.sendBoolean(c, k, true);
 			}
 			break;
@@ -250,6 +254,7 @@ public class Server {
 			if (games.containsKey(name) && !games.get(name).hasBegun()) {
 				log("Cancelled game "+name);
 				ChannelHelper.sendBoolean(c, k, true);
+				newGames.remove(games.get(name));
 				games.remove(name).cancel();
 			} else {
 				log("Refused to cancel game "+name);
