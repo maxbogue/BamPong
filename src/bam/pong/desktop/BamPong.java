@@ -32,7 +32,7 @@ public class BamPong {
 			}
 		} else {
 			String address = JOptionPane.showInputDialog(
-					"Enter server address", "bcg2784.student.rit.edu");
+					"Enter server address", "129.21.63.105");
 			try {
 				serverAddr = InetAddress.getByName(address);
 			} catch (UnknownHostException e1) {
@@ -46,8 +46,9 @@ public class BamPong {
 		if (args.length > 0) {
 			nick = args[0];
 		} else {
-			while (nick == null) {
-				nick = JOptionPane.showInputDialog("Enter Nickname:");
+			nick = JOptionPane.showInputDialog("Enter Nickname:");
+			if (nick == null) {
+				System.exit(1);
 			}
 		}
 		
