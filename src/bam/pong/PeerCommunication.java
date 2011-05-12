@@ -14,6 +14,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import bam.pong.message.*;
+
 /**
  * Handles all peer-to-peer communications.
  */
@@ -242,20 +244,9 @@ public class PeerCommunication {
 	
 	/** Send a ball to a peer. */
 	public void sendBall(Ball b, double position, Peer p) throws IOException {
-		ByteBuffer msg = ByteBuffer.allocateDirect(33); // type(1), id(4), position(8), dx(8), dy(8)
-		msg.put(MSG_BALL);
-		msg.putInt(b.id);
-		msg.putDouble(position);
-		msg.putDouble(b.dx);
-		msg.putDouble(b.dy);
-		msg.putInt(b.D);
-		msg.flip();
+		BallMessage m = new BallMessage(b, position);
 		
-		SocketChannel sock = sockets.get(p);
-		if( sock == null )
-			throw new IllegalArgumentException("Not connected to peer");
-		
-		ChannelHelper.sendAll(sock, msg);
+		m.sendMessage(sockets.get(p));
 	}
 	
 	/** Send a debug message to all connected peers. */
@@ -273,7 +264,6 @@ public class PeerCommunication {
 	
 	//////// List of message types
 	private static final byte MSG_DEBUG = 0;
-	private static final byte MSG_BALL  = 1;
 	
 	// Called when an established peer sends us a message
 	private void processPeerMessage(SocketChannel c) throws IOException {
@@ -289,14 +279,8 @@ public class PeerCommunication {
 		case MSG_DEBUG:
 			log(peer.getName()+": "+ChannelHelper.getString(c));
 			break;
-		case MSG_BALL:
-			int id = ChannelHelper.getInt(c);
-			double position = ChannelHelper.getDouble(c);
-			double dx       = ChannelHelper.getDouble(c);
-			double dy       = ChannelHelper.getDouble(c);
-			int D			= ChannelHelper.getInt(c);
-			if (listener != null)
-				listener.receiveBall(id, position, dx, dy, D);
+		case M.BALL:
+			BallMessage.receiveMessage(c, listener);
 			break;
 //		Dropped ball
 //			Informative to all peers & server

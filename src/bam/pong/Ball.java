@@ -8,7 +8,7 @@ package bam.pong;
  */
 public class Ball {
 	/** ID # of the ball. */
-	int id;
+	public final int id;
 
 	/** Current location of the ball. */
 	public double x, y;
