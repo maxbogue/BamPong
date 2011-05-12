@@ -149,6 +149,10 @@ public class Engine implements Runnable {
 		return balls;
 	}
 	
+	public Paddle getPaddle() {
+		return paddle;
+	}
+	
 	/** Returns the width of the playing field */
 	public int getWidth() { return width; }
 	

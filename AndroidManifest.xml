@@ -16,6 +16,7 @@
 <activity android:name=".BamPong"></activity>
 <activity android:name=".GUI"></activity>
 <activity android:name=".TestListActivities"></activity>
+<activity android:name=".CreateGame"></activity>
 </application>
 
 <uses-permission android:name="android.permission.INTERNET"></uses-permission>

@@ -3,6 +3,7 @@ package bam.pong.android;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -13,6 +14,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
+import bam.pong.BamException;
 import bam.pong.Client;
 import bam.pong.PeerCommunication;
 import bam.pong.ServerCommunication;
@@ -21,7 +23,7 @@ import bam.pong.ServerListener;
 
 public class GUI extends Activity implements ServerListener{
 
-	private void showError(String when, String message) {
+	private  void showError(String when, String message) {
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(message)
 			.setTitle(when)
@@ -42,11 +44,11 @@ public class GUI extends Activity implements ServerListener{
 	int port=1234;
 	ServerCommunication serverComm;
 	PeerCommunication peerComm;
-	Client client;
+	public static Client client;
 	
 	@Override
-	public void onStop() {
-		super.onStop();
+	public void onDestroy() {
+		super.onDestroy();
 		if (serverComm != null)
 			serverComm.stop();
 		if (peerComm != null)
@@ -71,8 +73,8 @@ public class GUI extends Activity implements ServerListener{
 		int ph = 25; // Paddle height.
 
 		Bundle extras = getIntent().getExtras();
-		String nick=extras.getString("nick");
-		String serverAddr=extras.getString("serverAddr");
+		final String nick=extras.getString("nick");
+		final String serverAddr=extras.getString("serverAddr");
 		InetAddress addr = null;
 		try {
 			addr = InetAddress.getByName(serverAddr);
@@ -104,19 +106,29 @@ public class GUI extends Activity implements ServerListener{
 		client.serverComm.addListener(this);
 
 
-
+//Create Game
 		final Button button1 = (Button) findViewById(R.id.widget27);
 		button1.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
+				
+				Intent myIntent = new Intent(v.getContext(), CreateGame.class);
+				startActivity(myIntent);
+
 				// Perform action on click
 			}
 		});
 
 
-
+//Cancel game
 		final Button button3 = (Button) findViewById(R.id.widget29);
 		button3.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
+				
+				try {
+					client.cancelGame();
+				} catch (BamException e) {
+					showError("Exception",e);
+				}
 				// Perform action on click
 			}
 		});
@@ -125,20 +137,25 @@ public class GUI extends Activity implements ServerListener{
 		final Button button4 = (Button) findViewById(R.id.widget30);
 		button4.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				/*List<String> games = null;
+		   List<String> games = null;
 
      		try {
-     			games = c.listGames();
+     			games = client.listGames();
      		} catch (BamException e) {
-     			//showError(e);
+     			showError("EXception",e);
+     		}
+     		
+     		if (games.isEmpty())
+     		{
+     			showError("NO GAMES","TRY Creating one");
+     			return;
      		}
      		String[] array = (String[])games.toArray();
 
         	 Intent myIntent = new Intent(v.getContext(), TestListActivities.class);
         	 myIntent.putExtra("games",array);
-        	 myIntent.putExtra("nick",nick);
-        	 myIntent.putExtra("serverAddr",serverAddr);
-        	 startActivity(myIntent);  */
+        	
+        	 startActivity(myIntent);  
 			}
 		});
 
@@ -147,8 +164,14 @@ public class GUI extends Activity implements ServerListener{
 		final Button button5 = (Button) findViewById(R.id.widget31);
 		button5.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				Intent myIntent = new Intent(v.getContext(), BamPong.class);
-				startActivity(myIntent);
+				try {
+					client.startGame();
+					
+				} catch (BamException e) {
+					showError("Exception",e);
+				}
+				
+				
 
 				// Perform action on click
 
@@ -162,12 +185,16 @@ public class GUI extends Activity implements ServerListener{
 
 	@Override
 	public void gameStarted() {
+		Intent myIntent = new Intent(this,BamPong.class);
+		startActivity(myIntent);
+		
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void gameCanceled() {
+		showError("GAME CANCELLED","THE GAME IS CANCELLED");
 		// TODO Auto-generated method stub
 
 	}
