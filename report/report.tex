@@ -30,8 +30,8 @@ Aniket Sharma
 	version.  But once any program needs to deal with multiple machines,
 	it must deal with the issues inherent in distributing programming.  To
 	explore how these issues must be dealt with in even a simple game, we
-	will implement a variant of Pong as a multiplayer game on multiple
-	mobile devices.
+	implemented a variant of Pong as a multiplayer game on multiple
+	platforms.
 \end{abstract}
 
 \section{Overview}
@@ -57,16 +57,60 @@ lowest score in the game.  To keep the game interesting with a large number
 of players, we plan on having multiple balls bouncing around and to display
 an overview of the entire game when there are no balls near your goal.
 
-Section \ref{design considerations} discusses in more detail the design of
-the game and systems involved.  Section \ref{implementation} discusses the
-architecture of the code.  Section \ref{areas of work} contains the
-problems we expect to find and our plans to deal with them.  Finally,
-section \ref{current status} details the current status of the project.
+% TODO: Layout new structure
 
-\section{Design Considerations}
-\label{design considerations}
+\section{Project Motivation}
+\label{motivation}
 
-% Use this section to describe the basic design of your project.
+\begin{itemize}
+	\item Investigate Peer-to-Peer and Client-Server methodologies
+	\item Provide message passing across different platforms: PC,
+		Blackberry and Android
+	\item Create a system that is both educational and entertaining.
+\end{itemize}
+
+\section{Architecture}
+\label{architecture}
+
+\begin{itemize}
+	\item Server
+		\begin{itemize}
+			\item Helps Clients find each other
+			\item Adds balls to game
+			\item Keeps score
+		\end{itemize}
+	\item Peer-to-Peer
+		\begin{itemize}
+			\item Send Balls to each other
+		\end{itemize}
+\end{itemize}
+
+\section{Design}
+\label{design}
+
+\begin{figure}[htb]
+	\label{code design}
+	\begin{center}
+		\includegraphics[width=3.25in]{UML.pdf}
+		\caption{Code Design}
+	\end{center}
+\end{figure}
+
+\begin{itemize}
+	\item \textbf{Game Start:} Clients connect to server, using simple
+		messages to join games.  Server sends message to all clients when
+		requested to start game and adds initial balls.
+	\item \textbf{Ball Passing:} Clients pass the ball via peer-to-peer
+		messages, using Paxos to ensure that all clients agree and are
+		informed of the current state.
+	\item \textbf{Client Failure:} When a client loses connectivity to a
+		peer, it initiates a round of voting to decide if the peer should
+		be dropped.  If a majority of clients can not see the peer, it is
+		dropped.
+	\item \textbf{Server Failure:} Similar to a client drop, a vote is
+		initiated and if clients agree the server has failed, a backup
+		server is contacted by all clients
+\end{itemize}
 
 The project involves setting up a centralized server, which acts as a
 reliable entity for initial game setup.  The server maintains the scores
@@ -93,8 +137,16 @@ game experience to the rest of the players
 \section{Implementation}
 \label{implementation}
 
-% Use this section to describe the implementation of your
-% project.
+\begin{figure}[htb]
+	\label{code layout}
+	\begin{center}
+		\includegraphics[width=3.25in]{Implementation.pdf}
+		\caption{Code Layout}
+	\end{center}
+\end{figure}
+
+% TODO: Change to describe actual code
+% TODO: Add note about threads
 
 Our client code will be Java-based, to allow easy portability to the
 Android and Blackberry platforms, as well as a desktop version.  The server
@@ -130,18 +182,61 @@ to react to user input and update interactively, the game model needs to
 update regularly and the communications portions need to respond to
 external messages without causing timeouts.
 
-\begin{figure}[htb]
-	\label{code design}
-	\begin{center}
-		\includegraphics[width=3.25in]{UML.pdf}
-		\caption{Code Design}
-	\end{center}
-\end{figure}
+\section{Lessons Learned}
+\label{lessons}
+
+\begin{itemize}
+	\item \textbf{Expect New Things to Take Longer:} Our team did not have
+		much experience with any major section of the project: Android,
+		networking and game physics.  It took much longer than we had
+		planned to get basic implementations.
+	\item \textbf{Integrate Early and Often:} We each worked on a major
+		section of code, learning the techniques required and developing in
+		pieces.  We left integrating the sections until late in the
+		project.
+	\item \textbf{Even Simple Distributed Algorithms are Complicated:}
+		``Fast Paxos'' (Lamport, 2005) describes the Paxos algorithm in 4
+		steps over three pages.  ``Paxos for System Builders'' (Kirsh and
+		Amir, 2008) gives complete pseudocode for the same algorithm and
+		takes 10 pages.
+\end{itemize}
+
+\section{Current Status}
+\label{Status}
+
+\begin{itemize}
+	\item \textbf{Blackberry Platform Abandoned:} While Blackberry does
+		have a Java SDK via Eclipse, it requires a custom install of
+		Eclipse and does not implement standard Java packages like
+		java.net.*.
+	\item \textbf{Desktop Expanded:} Originally, the desktop version was a
+		simple test platform but was expanded to become a full game client.
+	\item \textbf{Networking:} Paxos turned out to be a more complicated
+		algorithm than originally expected.  When the implementation had
+		problems, we went back to a more simple (but less failure
+		resistant) message passing method.
+	\item \textbf{Android:} The Android platform is mostly functional, but
+		due to the disconnect method of development and indirect nature of
+		its APIs, it has proved difficult to debug.
+\end{itemize}
+
+\section{Future Work}
+\label{future}
+
+\begin{itemize}
+	\item \textbf{Server Failure:} Backup servers were never implemented
+	\item \textbf{Consensus Algorithms:} Paxos seemed to be far more
+		complex than required for this project.  Other forms of voting and
+		data propagation could be investigated.
+	\item \textbf{Additional Platforms:} While Blackberry was never
+		developed due to lack of time, the modular nature of the code
+		should allow the differences to be abstracted away.
+\end{itemize}
 
 \section{Areas of Work}
 \label{areas of work}
 
-% Description of the problems to solve
+% TODO: Integrate into other sections
 
 \subsection{Game Setup}
 
@@ -217,6 +312,8 @@ to more players easier.
 % Use this section to describe issues that the papers deal
 % with that are neither common nor disagreements.
 
+
+% TODO: Integrate into other sections
 \section{Current Status and Future Work}
 \label{current status}
 
