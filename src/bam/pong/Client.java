@@ -111,6 +111,9 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	////////////////////
 
 	public void sendBall(Ball b) {
+		if (game.peers.isEmpty())
+			return; // Nobody to send it to.
+		
 		int div = w / game.peers.size();
 		int peerNum = (int) b.x / div;
 		
@@ -155,6 +158,8 @@ public class Client implements EngineListener, ViewListener, PeerListener, Serve
 	@Override
 	public void dropPeer(Peer p) {
 		game.peers.remove(p.getId());
+		if (game.peers.isEmpty())
+			engine.stop();
 		// TODO reconnection or something?
 	}
 

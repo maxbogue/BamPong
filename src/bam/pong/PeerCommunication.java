@@ -65,7 +65,7 @@ public class PeerCommunication {
 					}
 					
 					// Check for closed sockets
-					for (SocketChannel socket : peers.keySet()) {
+					for (SocketChannel socket : peers.keySet().toArray(new SocketChannel[0])) {
 						if (!socket.isOpen()) {
 							socket.keyFor(selector).cancel();
 							Peer peer = peers.get(socket);
@@ -280,7 +280,12 @@ public class PeerCommunication {
 		Peer peer = peers.get(c);
 
 		ByteBuffer b = ByteBuffer.allocateDirect(1);
-		if (c.read(b) <= 0)
+		int read = c.read(b);
+		if (read < 0) {
+			c.close();
+			return;
+		}
+		if (read < 1)
 			return; // No data?
 		b.flip();
 		byte type = b.get();
