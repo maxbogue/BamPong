@@ -13,22 +13,22 @@
 \begin{document}
 
 \title{Peer-to-Peer Pong}
-\numberofauthors{3}
-\author{
-\alignauthor
-Max Bogue
-\alignauthor
-Brian Gernhardt
-\alignauthor
-Aniket Sharma
-}
-\date{07 April 2011}
+% \numberofauthors{3}
+% \author{
+% \alignauthor
+% Max Bogue
+% \alignauthor
+% Brian Gernhardt
+% \alignauthor
+% Aniket Sharma
+% }
+\date{13 May 2011}
 \maketitle
 
 \begin{abstract}
 	These days, even simple games are expected to have a multi-player
-	version.  But once any program needs to deal with multiple machines,
-	it must deal with the issues inherent in distributing programming.  To
+	version.  But once any program needs to deal with multiple machines, it
+	must deal with the issues inherent in distributing programming.  To
 	explore how these issues must be dealt with in even a simple game, we
 	implemented a variant of Pong as a multiplayer game on multiple
 	platforms.
@@ -43,47 +43,122 @@ Aniket Sharma
 % you considered, and and section \ref{implementation}
 % discusses how you went about implementing your project.
 
-To explore distributed systems, we plan on implementing a distributed game.
-In order to explore the problems behind the concept instead of spending
-time implementing a complicated game, we intend to create a version of a
-very simple and classic video game, Pong.  The objective of Pong is simple:
-to keep a ball from falling off your side of the playing field.
+To obtain hands on experience with distributed systems, we implemented a
+distributed game.  In order to explore the problems behind the concept
+instead of spending time implementing a complicated game, we created a
+version of a very simple and classic video game, Pong.  The objective of
+Pong is simple: to keep a ball from falling off your side of the playing
+field.
 
-To expand the game for a distributed setting, we alter the rules slightly.
-Each player sees a portion of the total field.  The edges of their section
-connect to other player's screen.  If the ball falls off the bottom of your
-screen, it counts as a point against you.  The goal becomes having the
-lowest score in the game.  To keep the game interesting with a large number
-of players, we plan on having multiple balls bouncing around and to display
-an overview of the entire game when there are no balls near your goal.
+To expand the game for a distributed setting, we altered the rules
+slightly.  Each player sees a portion of the total field.  The edges of
+their section connect to other player's screen.  If the ball falls off the
+bottom of your screen, it counts as a point against you.  The goal becomes
+having the lowest score in the game.  To keep the game interesting with a
+large number of players, we have multiple balls bouncing around.
 
-% TODO: Layout new structure
+This distributed nature lends itself to a peer-to-peer structure but we
+included a central server to handle administrative tasks of starting games
+and keeping score, as well as providing a central location for peers to
+connect to in order to find each other.  In the style of modern video
+games, we designed a system that can run on multiple platforms and
+communicate via the Internet.
+
+The organization of this paper is as follows.  Section \ref{motivation}
+describes the motivations behind the design decisions we made.  Section
+\ref{architecture} describes the overall architecture of the system and
+section \ref{design} goes into more depth about each aspect of the design.
+Section \ref{implementation} describes how we implemented the design and
+section \ref{status} gives our current status.  We wrap up with the lessons
+we learned in the course of the project in section \ref{lessons} and what
+areas could be explored with additional work in section \ref{future}.
+
 
 \section{Project Motivation}
 \label{motivation}
 
-\begin{itemize}
-	\item Investigate Peer-to-Peer and Client-Server methodologies
-	\item Provide message passing across different platforms: PC,
-		Blackberry and Android
-	\item Create a system that is both educational and entertaining.
-\end{itemize}
+We decided early on to create some form of game in order to make the result
+entertaining in addition to educational.  In addition, the current
+explosion of “apps” on mobile makes it possible to turn a project of this
+nature into a commercial program.  The nature of the game helped make
+several decisions about the form of the overall system.
+
+In order to contrast different messaging styles, we implemented both
+peer-to-peer and client-server architectures.  This allowed us to use
+whichever mode was best for each task in the system.  The peer-to-peer
+nature came naturally from the need to pass a ball from player to player,
+but the existence of a central authority make tasks like finding other
+players and adding new balls simple.  This mixture allowed us to explore
+two methods of networking while actually making the implementation simpler.
+
+Our final motivation was to create a program that ran across multiple
+platforms.  This came out of the desire to mirror the “app” stores, where
+the most popular programs are available on multiple platforms.  However, we
+limited ourselves to platforms with Java compatibility so that we could try
+to share as much code as possible.  This forced us to maintain a modular
+system so that platform specific code could be kept separate while giving
+us an appreciation for the work needed to do cross-platform work.
+
 
 \section{Architecture}
 \label{architecture}
 
-\begin{itemize}
-	\item Server
-		\begin{itemize}
-			\item Helps Clients find each other
-			\item Adds balls to game
-			\item Keeps score
-		\end{itemize}
-	\item Peer-to-Peer
-		\begin{itemize}
-			\item Send Balls to each other
-		\end{itemize}
-\end{itemize}
+Our system architecture is split into two sections: the server and the game
+clients.  The server provides the centralized decision making while the
+peer-to-peer nature of the clients keeps the server responsibilities small.
+The server does add a single point of failure, so a backup needs to be
+planned for.  Finally, in a complex system the needs of scalability needs
+to be kept in mind.
+
+\subsection{Client-Server}
+
+Providing a centralized server gives a reliable entity for initial game
+setup.  Having a single initial location for clients to connect to
+simplifies the problem of discovery and creates an authority to give unique
+identifiers to each client.  This naturally extends to having the server
+handle the tasks of maintaining a list of open games and handling requests
+for new players to join them.
+
+The role of the server as central authority also plays a role in the course
+of a game.  It can act as a scorekeeper, providing not only a single place
+to store the value but also providing oversight to help keep misbehaving
+clients from keeping the ball or penalizing their score if they refuse to
+either pass the ball or report it as dropping within a certain timeout.
+
+\subsection{Peer-to-Peer}
+
+During a game, the players the players co-ordinate with each other by
+sending constant messages about the ball position to rest of the players as
+well as the server.  Thus, in case of a failure on any of the player
+devices the server can make the necessary changes with the information it
+has, thereby ensuring availability of the game to the rest of the players.
+The actual transfer of the messages between two players is peer to peer,
+thereby increasing the speed and efficiency of the game.  The player who is
+about to receive the ball will receive a message from the player where the
+ball came from containing information about the location of the ball on the
+screen, the angle and speed with which it is traveling ensuring uniform
+game experience to the rest of the players.
+
+\subsection{Backup Servers}
+
+Because the server has responsibility for scoring and re-adding balls once
+they have dropped, the availability of the server is vital to the game.
+When the clients originally connect to the server, they will be provided
+with a list of additional servers that will be kept up to date with the
+game state so they are available for hot swapping. In addition, the server
+itself could suggest a switch to the backup server at game start in order
+to perform load balancing.
+
+\subsection{Scalability}
+
+To maintain scalability, much of the work is kept away from the central
+server.  Keeping a majority of the communication between clients only makes
+scaling simpler as they only need to scale based on the number of players
+in a game.  If the work the server needs to do for any particular game
+message is kept simple, it should be able to handle a large number of games
+without issue.  The backup server system implies the ability to scale by
+adding multiple servers and switching between them based on load.
+
 
 \section{Design}
 \label{design}
@@ -96,170 +171,45 @@ an overview of the entire game when there are no balls near your goal.
 	\end{center}
 \end{figure}
 
-\begin{itemize}
-	\item \textbf{Game Start:} Clients connect to server, using simple
-		messages to join games.  Server sends message to all clients when
-		requested to start game and adds initial balls.
-	\item \textbf{Ball Passing:} Clients pass the ball via peer-to-peer
-		messages, using Paxos to ensure that all clients agree and are
-		informed of the current state.
-	\item \textbf{Client Failure:} When a client loses connectivity to a
-		peer, it initiates a round of voting to decide if the peer should
-		be dropped.  If a majority of clients can not see the peer, it is
-		dropped.
-	\item \textbf{Server Failure:} Similar to a client drop, a vote is
-		initiated and if clients agree the server has failed, a backup
-		server is contacted by all clients
-\end{itemize}
-
-The project involves setting up a centralized server, which acts as a
-reliable entity for initial game setup.  The server maintains the scores
-and handles scenarios where players leave the game.  The server has the
-authority of adding players to the game before the game starts and also
-makes sure that the game functions within its rules.  It also has the
-responsibility of keeping scores while the game is in progress.  The game
-will also include additional features such as adding multiple balls in the
-game and giving players the benefits of powerups and other real time
-add-ons, thus making it scalable.  
-
-The players co-ordinate with each other by sending constant messages about
-the ball and the paddle position to rest of the players as well as the
-server.  Thus, in case of a failure on any of the player devices the server
-can make the necessary changes with the information it has, thereby
-ensuring availability of the game to the rest of the players.  The actual
-transfer of the messages between two players is peer to peer, thereby
-increasing the speed and efficiency of the game.  The player who is about
-to receive the ball will receive a message from the player where the ball
-came from containing information about the location of the ball on the
-screen, the angle and speed with which it is traveling ensuring uniform
-game experience to the rest of the players
-
-\section{Implementation}
-\label{implementation}
-
-\begin{figure}[htb]
-	\label{code layout}
-	\begin{center}
-		\includegraphics[width=3.25in]{Implementation.pdf}
-		\caption{Code Layout}
-	\end{center}
-\end{figure}
-
-% TODO: Change to describe actual code
-% TODO: Add note about threads
-
-Our client code will be Java-based, to allow easy portability to the
-Android and Blackberry platforms, as well as a desktop version.  The server
-will also be written in Java in order to simplify development and reuse
-some of the networking code.  The client interface will have to utilize the
-various input methods for each platform.  Android users will be able to
-touch the screen directly, BlackBerry users will use the trackball, and the
-desktop user will have their usual input options.  We're hoping that the
-design of the gameplay is simple enough that the user experience will be
-relatively uniform across platforms.
-
-Figure \ref{code design} depicts the high level structure of the code.  It
-is split into four sections each encapsulating a portion of the system:
-User Interface, Game Model, Server Communication and Client Communication.
-This is motivated in not only the general concept of isolation, but also to
-aid portability.  The User Interface code will likely need to be very
-different on each platform and, at least on Blackberry, the networking code
-as well.
-
-The user interface is responsible for all interaction to the user,
-including connecting to games, input to move the paddle and displaying the
-ball's position with updates from the game engine.  The game engine
-enforces all the rules of the game and models the limited ``physics'' of
-the ball motion and bounces.  The two communications section handles all
-issues with communicating with other systems, turning complex consensus
-algorithms into simple updates of state.
-
-The code interaction will be event driven, with the four sections each
-either running in separate threads or being run as needed in response to
-external events.  This is because each section needs to run in response to
-different things and often with timing deadlines.  The user interface needs
-to react to user input and update interactively, the game model needs to
-update regularly and the communications portions need to respond to
-external messages without causing timeouts.
-
-\section{Lessons Learned}
-\label{lessons}
-
-\begin{itemize}
-	\item \textbf{Expect New Things to Take Longer:} Our team did not have
-		much experience with any major section of the project: Android,
-		networking and game physics.  It took much longer than we had
-		planned to get basic implementations.
-	\item \textbf{Integrate Early and Often:} We each worked on a major
-		section of code, learning the techniques required and developing in
-		pieces.  We left integrating the sections until late in the
-		project.
-	\item \textbf{Even Simple Distributed Algorithms are Complicated:}
-		``Fast Paxos'' (Lamport, 2005) describes the Paxos algorithm in 4
-		steps over three pages.  ``Paxos for System Builders'' (Kirsh and
-		Amir, 2008) gives complete pseudocode for the same algorithm and
-		takes 10 pages.
-\end{itemize}
-
-\section{Current Status}
-\label{Status}
-
-\begin{itemize}
-	\item \textbf{Blackberry Platform Abandoned:} While Blackberry does
-		have a Java SDK via Eclipse, it requires a custom install of
-		Eclipse and does not implement standard Java packages like
-		java.net.*.
-	\item \textbf{Desktop Expanded:} Originally, the desktop version was a
-		simple test platform but was expanded to become a full game client.
-	\item \textbf{Networking:} Paxos turned out to be a more complicated
-		algorithm than originally expected.  When the implementation had
-		problems, we went back to a more simple (but less failure
-		resistant) message passing method.
-	\item \textbf{Android:} The Android platform is mostly functional, but
-		due to the disconnect method of development and indirect nature of
-		its APIs, it has proved difficult to debug.
-\end{itemize}
-
-\section{Future Work}
-\label{future}
-
-\begin{itemize}
-	\item \textbf{Server Failure:} Backup servers were never implemented
-	\item \textbf{Consensus Algorithms:} Paxos seemed to be far more
-		complex than required for this project.  Other forms of voting and
-		data propagation could be investigated.
-	\item \textbf{Additional Platforms:} While Blackberry was never
-		developed due to lack of time, the modular nature of the code
-		should allow the differences to be abstracted away.
-\end{itemize}
-
-\section{Areas of Work}
-\label{areas of work}
-
-% TODO: Integrate into other sections
+The code can be divided into four major parts: user interaction, game
+engine, server communication and peer communication.  The details of each
+part is described in the next section, but the way they need to interact is
+described here.  In particular, the tasks of setting up a game, running the
+game, passing the ball, and client and server failures are addressed.
 
 \subsection{Game Setup}
 
 The server handles an important issue of naming and service discovery.  The
-centralized server ensures  that it is handling both the clients as well as
+centralized server ensures that it is handling both the clients as well as
 the backup servers at once. The game is setup by adding players and the
-server ensures  that the game is played within the rules and is available
+server ensures that the game is played within the rules and is available
 all the time. Along with maintaining the client list the server also
 maintains the list of backup servers, always keeping them up to date about
 the game situation in case the centralized server fails, this not only
 handles availability of the game but also ensures consistency as far as the
-game is concerned. The server has the authority of adding multiple balls
-and also power ups, thus making the game scalable in its own way. The
-issues that we handle as far as the project goes range from availability to
-reliability by the use of an interesting algorithm.
+game is concerned. The server has the authority of adding multiple balls,
+thus making the game scalable in its own way. The issues that we handle as
+far as the project goes range from availability to reliability by the use
+of an interesting algorithm.
 
-\subsection{Coordinating Ball Position}
+\subsection{Running the Game}
+
+Each player is responsible for determining the motion of the ball while it
+is within their section of the game.  The unique “physics” of the game is
+contained within the game engine, which is solely responsible for the
+motion of the paddle and ball.  This requires cooperation with all other
+sections of code.  It must update the GUI to display the game to the user
+and update the paddle location in response to user input.  It must accept
+and pass balls off to other clients.  And finally, it must notify the
+server when the ball falls off the bottom of the screen.  
+
+\subsection{Passing the Ball}
 
 The players co-ordinate with each other by sending constant messages about
 the ball and the paddle position to rest of the players as well as the
 server. As the player interaction is peer to peer in order to increase
 speed and efficiency, the issue about consensus regarding the ball
-position, becomes the most important aspect of the game. We are going to
+position, becomes the most important aspect of the game. We decided ing to
 use Paxos\cite{lamport:paxos} for solving this issue.
 
 The leader in this case is the player who currently has the ball. Thus the
@@ -276,71 +226,243 @@ If a player drops from the game, this will be detected by each player
 individually by a lack of response from game coordination messages. The
 remaining players will then use Paxos to come to a consensus on whether or
 not the player has lost their connection and should be dropped from the
-game.
+game.  If the consensus is that the player is still playing, attempts to
+reconnect can be made and another vote called for if it fails.
 
-\subsection{Backup Servers}
+\subsection{Server Connection Failures}
 
-Server failure will also be detected by a lack of response, and consensus
-will again be reached using Paxos.  Since at this point in the design the
-game requires the server to play, it cannot just be dropped.  Therefore the
-clients will have to agree on a backup server to switch to.  The
-involvement of backup servers ensures that there is no single point of
-failure as far as communication is concerned.
-
-When the clients originally connect to the server, they will be provided
-with a list of additional servers that will be kept up to date with the
-game state so they are available for hot swapping.  If a consensus is
+Server failure can be detected by a lack of response to a client request,
+and the players can vote to achieve a group consensus on if the server has
+failed.  The involvement of backup servers ensures that there is no single
+point of failure as far as communication is concerned.   If a consensus is
 reached that the server is inaccessible, the clients will connect to one of
-the servers from this list.  In addition, the server itself could suggest a
-switch to the backup server at game start in order to perform load
-balancing.
-
-\subsection{Scalability}
-
-We plan on allowing the games to gracefully scale up to some undetermined
-maximum.  We will need to be able to modify the game field in real time if
-a player drops, so there is potential for a player to be able to join
-mid-game as well.   Scaling of the system overall will be accomplished
-through the concurrent use of multiple server machines, as well as trying
-to keep the server-side portion of the game as minimal as possible.
-Keeping the communication between the clients will inherently make scaling
-to more players easier.
-
-% \section{Mistakes Made and Corrected}
-% \label{mistakes}
-
-% Use this section to describe issues that the papers deal
-% with that are neither common nor disagreements.
+the servers from this list.
 
 
-% TODO: Integrate into other sections
-\section{Current Status and Future Work}
-\label{current status}
+\section{Implementation}
+\label{implementation}
 
-% Use this section to describe the current status of your work
-% and what else needs to be done.
+Our client code is written in Java, to allow easy portability to the
+Android and Blackberry platforms, as well as a desktop version.  The server
+was also be written in Java in order to simplify development and reuse some
+of the networking code.  The client interface also has to utilize the
+various input methods for each platform.  Android users can touch the
+screen directly, BlackBerry users use the trackball, and the desktop user
+has their usual mouse and keyboard options.  The design of the gameplay is
+kept simple enough that the user experience is relatively uniform across
+platforms.
 
-A game physics engine and the beginning of the networking system have been
-implemented, but the game is not yet playable.  We have rough
-implementations of all four portions of the code as described previously,
-but they are not yet well connected.  Our code repository is available
-online at \texttt{https://github.com/maxbogue/BamPong}.
+\begin{figure}[htb]
+	\label{code layout}
+	\begin{center}
+		\includegraphics[width=3.25in]{Implementation.pdf}
+		\caption{Code Layout}
+	\end{center}
+\end{figure}
 
-Further investigation into Blackberry's SDK has revealed a number of
-inconsistencies with standard Java including the complete lack of the
-\texttt{java.net} and \texttt{java.nio} packages.  This means that larger
-portions of the application would have to be rewritten to run on a
-Blackberry than originally anticipated.  In addition, problems with
-obtaining and using the Blackberry SDK itself has already delayed
-development.  While we have not yet abandoned the platform, its use has
-become a significantly lower priority with development proceeding on
-Android and a desktop application.
+% TODO: Change to describe actual code
+% TODO: Add note about threads
+
+Figure \ref{implementation} depicts the structure of the code.  Each box
+indicates a Java class.  The GUI classes are platform dependent, with an
+implementation in Swing on the desktop and using Activities on Android.
+All other code is shared across the platforms.
+
+The user interface is responsible for all interaction to the user,
+including connecting to games, input to move the paddle and displaying the
+ball's position with updates from the game engine.  The game engine
+enforces all the rules of the game and models the limited ``physics'' of
+the ball motion and bounces.  The two communications section handles all
+issues with communicating with other systems, turning complex consensus
+algorithms into simple updates of state.
+
+The code interaction is event driven, with the communication classes and
+the Engine running in separate threads in addition to the main thread and
+any GUI threads started by the platform libraries.  This is because each of
+these need to run in response to different things and often with timing
+deadlines.  The user interface needs to react to user input and update
+interactively, the game model needs to update regularly and the
+communications portions need to respond to external messages without
+causing timeouts.
+
+All of these portions are coordinated by the Client class, which forwards
+and translates events from one subsystem to another.  Ball drop messages
+are caught from the engine and forwarded to ServerCommunication to notify
+the server.  Ball passing messages are similarly caught and forwarded to
+PeerCommunication.  Messages from the server and peers are forwarded to the
+engine or user as appropriate.  This weak coupling between the components
+insulates each section from the others and allows the Engine to simply note
+a ball has left the field without any knowledge of the other peers or
+server.
+
+Despite the PeerCommunication and Server classes needing to communicate
+with multiple destinations, they are contained to a single thread by using
+\texttt{java.nio.channels.Selector}s.  The selector contains a reference to
+every socket that may send messages and the thread sleeps on it until a
+message arrives.  The thread then dispatches the message as quickly as
+possible and returns to waiting on the selector.
+
+\subsection{Server}
+
+The server is a single threaded application with no user interface,
+although it does output log messages.  This is so it can be started on a
+server and left to run for an extended period of time.  Although it does
+share some networking code with the client, it does not use the game engine
+or communication classes.  The server is intended to be as small as
+possible and maintain only the state needed to respond to clients.  This is
+so that a single server can serve many games without requiring heavy
+hardware.
+
+\subsection{Desktop}
+
+The Desktop client uses the Swing library to interact with the user.  The
+user is prompted for a nickname and server address when the application is
+started.  The application then starts the common peer and server
+communication classes and ties them together with a client object.  It then
+displays an interface to create, join, and start games by interacting with
+the client.  It must act as a listener to ServerCommunications however, so
+that it can be notified when a game is going to start which may be
+initiated by another client.  When the game is started, it displays the
+game field and all further interaction is handled by the client and engine.
+
+\subsection{Android}
+
+The Android user interface consists of three Activities:  Start, GUI, and
+BamPong.   These handle similar responsibilities to the Swing application,
+but are structured according to the expectations of the Android system.
+
+The Start activity simply displays a prompt for player name and server
+address.  When these are entered and the user presses the connect button,
+this information is passed to the GUI activity.  On creation the GUI
+activity uses the common communication classes.  Any errors are displayed
+as alert dialogs to the user and the Start activity is displayed again.
+
+The GUI activity gives the client the options to create game, join game,
+cancel game and start game respectively.  Again here we have implemented
+user alerts to counter wrong information entered.  Each of the options is a
+button, which when clicked tries to create a client object which allows the
+client to create game, join game start or cancel respectively.  In case of
+creation of the game the client has to wait for other players to join the
+game.  Once that happens a peer to peer connection between the players is
+established via the peer communication class.  The join game button when
+clicked displays a list of games for the client to select from, this list
+of games itself is a new activity.  Similarly the create game button when
+clicked switches to a new activity called CreateGame which gives the user
+the option to create the game.
+
+The BamPong activity is started when notification arrives from the server
+that the game is starting.  Here the actual game field, the balls and
+paddles are drawn.  The drawing is done by using built-in Android graphics
+libraries.  The Activity constantly interacts with the engine for the game
+physics in real time.  Also the interaction with the server and Client is
+happening for the transfer information of the balls being passed from the
+top of the screen.
+
+
+\section{Current Status}
+\label{status}
+
+The earliest change to our original plans was the decision to not develop
+on Blackberry.  After several days of e-mail problems to get registered, we
+discovered that their developement environment was a customized version of
+Eclipse that would not interact with other systems such as the Android SDK.
+In addition, although Blackberry uses Java it uses a custom set of
+libraries instead of the standard Java libraries which meant that much
+larger sections of our code would need to be rewritten for Blackberry.
+
+In response the dropping the Blackberry platform, we expanded the desktop
+client.  Most of the original desktop code was written to test new features
+rapidly.
+
+\begin{itemize}
+	\item \textbf{Desktop Expanded:} Originally, the desktop version was a
+		simple test platform but was expanded to become a full game client.
+	\item \textbf{Networking:} Paxos turned out to be a more complicated
+		algorithm than originally expected.  When the implementation had
+		problems, we went back to a more simple (but less failure
+		resistant) message passing method.
+\end{itemize}
+
+The Android platform is mostly functional, but due to the disconnect method
+of development and indirect nature of its APIs, it has proved difficult to
+debug.  We successfully developed the GUI and managed to connect to the
+server and the peers in the Game.  We were successful in making the game
+engine compatible with android along with the networking we implemented for
+desktop.  The networking was mostly compatible but we could not fix the
+connection drop bug on Android which would drop the connection after the
+game was started.  The android client is able to create, cancel, join and
+start a game, due to the connection issues with the server it is not able
+to sustain the game for long.  The graphics on Android works fine
+displaying and connecting the required entities.  The Android is compatible
+and successfully connects to other Android and desktop clients.  It
+successfully inputs user data and channels it to the appropriate receivers.
+It successfully displays user alerts.  We had a few minor bugs that were
+dropping the connection to a game after few seconds on the Android client,
+but we are sure we should be able to fix it in the future.
+
+\section{Lessons Learned}
+\label{lessons}
+
+Our team did not have much experience with any major section of the
+project: Android, networking and game physics.  It took much longer than we
+had planned to get basic implementations.The biggest lesson learned was
+knowing or practicing basic application development concepts before we
+implemented the Distributed application.Knowing or practicing coding about
+simple networking and life cycle of an Android app  would have helped
+definitely to code the networking part and the game physics part on Android
+better.Making simple android applications and testing them on android
+devices should be a prerequisite before developing a Distributed Android
+application.We should have made ourselves well versed with the life cycle
+of a simple Android app and then should have migrated on to the Distributed
+Version of the life cycle rather than jumping on the Distributed life cycle
+in the first place.We left learning the Android concepts late and should
+have done that before we started implementing.We were exploring concepts as
+we were coding ,but we should have had an entire picture of all important
+concepts of Android known before we started coding.This would have given us
+more options and time.Android developing environment was the essential
+component for this project.We should have explored the eclipse
+functionalities of Android before we started coding instead of doing it
+simultaneously.Debugging on Android is complex and we should have made
+ourselves familiar with that with more practice.
+
+We each worked on a major section of code, learning the techniques required
+and developing in pieces.  We left integrating the sections until late in
+the project.  We should have planned and integrated the codes much earlier
+than we did,this would have given us more time to solve problems that
+resulted after the integration of the major sections.  We tried to
+implement the networking part ourselves instead of using the inbuilt
+libraries.  The use of inbuilt networking libraries on Android as well as
+Java would have made our job simpler and would have saved us time given
+that we had to implement the project in ten weeks.
+
+We realized it very late in our implementation that even Simple Distributed
+Algorithms were complicated.We tried to implement Paxos as a consensus
+algorithm without realizing the complexity and the amount of time it would
+take to implement it.``Fast Paxos'' (Lamport, 2005) describes the Paxos
+algorithm in 4 steps over three pages.  ``Paxos for System Builders''
+(Kirsh and Amir, 2008) gives complete pseudo code for the same algorithm
+and takes 10 pages.  The lesson learned here was determining early in your
+project whether it would be feasible and practical  to implement  complex
+concepts  within a given time frame or not.
+
+\section{Future Work}
+\label{future}
+
+\begin{itemize}
+	\item \textbf{Server Failure:} Backup servers were never implemented
+	\item \textbf{Consensus Algorithms:} Paxos seemed to be far more
+		complex than required for this project.  Other forms of voting and
+		data propagation could be investigated.
+	\item \textbf{Additional Platforms:} While Blackberry was never
+		developed due to lack of time, the modular nature of the code
+		should allow the differences to be abstracted away.
+\end{itemize}
+
+\section{Conclusion}
 
 \bibliographystyle{abbrv}
 \bibliography{report}
-% You must have a proper ".bib" file
-%  and remember to run:
 % latex bibtex latex latex
-% to resolve all references
 \balance
+
 \end{document}
