@@ -79,7 +79,7 @@ areas could be explored with additional work in section \ref{future}.
 
 We decided early on to create some form of game in order to make the result
 entertaining in addition to educational.  In addition, the current
-explosion of “apps” on mobile makes it possible to turn a project of this
+explosion of ``apps'' on mobile makes it possible to turn a project of this
 nature into a commercial program.  The nature of the game helped make
 several decisions about the form of the overall system.
 
@@ -92,8 +92,8 @@ players and adding new balls simple.  This mixture allowed us to explore
 two methods of networking while actually making the implementation simpler.
 
 Our final motivation was to create a program that ran across multiple
-platforms.  This came out of the desire to mirror the “app” stores, where
-the most popular programs are available on multiple platforms.  However, we
+platforms.  This came out of the desire to mirror the app stores, where the
+most popular programs are available on multiple platforms.  However, we
 limited ourselves to platforms with Java compatibility so that we could try
 to share as much code as possible.  This forced us to maintain a modular
 system so that platform specific code could be kept separate while giving
@@ -195,7 +195,7 @@ of an interesting algorithm.
 \subsection{Running the Game}
 
 Each player is responsible for determining the motion of the ball while it
-is within their section of the game.  The unique “physics” of the game is
+is within their section of the game.  The unique ``physics'' of the game is
 contained within the game engine, which is solely responsible for the
 motion of the paddle and ball.  This requires cooperation with all other
 sections of code.  It must update the GUI to display the game to the user
@@ -297,7 +297,7 @@ server.
 
 Despite the PeerCommunication and Server classes needing to communicate
 with multiple destinations, they are contained to a single thread by using
-\texttt{java.nio.channels.Selector}s.  The selector contains a reference to
+\texttt{java.nio.channels. Selector}s.  The selector contains a reference to
 every socket that may send messages and the thread sleeps on it until a
 message arrives.  The thread then dispatches the message as quickly as
 possible and returns to waiting on the selector.
@@ -372,58 +372,56 @@ larger sections of our code would need to be rewritten for Blackberry.
 
 In response the dropping the Blackberry platform, we expanded the desktop
 client.  Most of the original desktop code was written to test new features
-rapidly.
+rapidly but was relatively easy to expand to be a complete client.  Due to
+our larger familiarity with Swing and debugging directly on a computer, the
+desktop client went from very few features to being the most stable and
+feature complete in very short order.
 
-\begin{itemize}
-	\item \textbf{Desktop Expanded:} Originally, the desktop version was a
-		simple test platform but was expanded to become a full game client.
-	\item \textbf{Networking:} Paxos turned out to be a more complicated
-		algorithm than originally expected.  When the implementation had
-		problems, we went back to a more simple (but less failure
-		resistant) message passing method.
-\end{itemize}
+The networking code was a persistent problem, caused by the desire to use
+the unfamiliar \texttt{java.nio.channels} package in order to enable
+asynchronous networking and then an incomplete understanding of Paxos.
+Eventually message passing using channels was completed, but when the Paxos
+implementation was still causing problems towards the end of the project,
+it was removed in favor of simple direct message passing.  This reduced the
+amount of information replication and communication reliability but worked.
 
-The Android platform is mostly functional, but due to the disconnect method
-of development and indirect nature of its APIs, it has proved difficult to
-debug.  We successfully developed the GUI and managed to connect to the
-server and the peers in the Game.  We were successful in making the game
-engine compatible with android along with the networking we implemented for
-desktop.  The networking was mostly compatible but we could not fix the
-connection drop bug on Android which would drop the connection after the
-game was started.  The android client is able to create, cancel, join and
-start a game, due to the connection issues with the server it is not able
+The Android platform is mostly functional, but due to the disconnected
+method of development and indirect nature of its APIs, it has proved
+difficult to debug.  We successfully developed the GUI and managed to
+connect to the server and the peers in the Game.  The game engine was fully
+compatible between the desktop and Android.  The networking was mostly
+compatible but we could not fix a bug which would drop peer connections
+shortly after the game was started.  The Android client is able to create,
+cancel, join and start a game, due to the connection issues it is not able
 to sustain the game for long.  The graphics on Android works fine
 displaying and connecting the required entities.  The Android is compatible
 and successfully connects to other Android and desktop clients.  It
-successfully inputs user data and channels it to the appropriate receivers.
-It successfully displays user alerts.  We had a few minor bugs that were
-dropping the connection to a game after few seconds on the Android client,
-but we are sure we should be able to fix it in the future.
+successfully inputs and processes user data and displays alerts on errors.
 
 \section{Lessons Learned}
 \label{lessons}
 
 Our team did not have much experience with any major section of the
 project: Android, networking and game physics.  It took much longer than we
-had planned to get basic implementations.The biggest lesson learned was
+had planned to get basic implementations.  The biggest lesson learned was
 knowing or practicing basic application development concepts before we
-implemented the Distributed application.Knowing or practicing coding about
-simple networking and life cycle of an Android app  would have helped
+implemented the Distributed application.  Knowing or practicing coding
+about simple networking and life cycle of an Android app would have helped
 definitely to code the networking part and the game physics part on Android
-better.Making simple android applications and testing them on android
+better.  Making simple android applications and testing them on android
 devices should be a prerequisite before developing a Distributed Android
-application.We should have made ourselves well versed with the life cycle
+application.  We should have made ourselves well versed with the life cycle
 of a simple Android app and then should have migrated on to the Distributed
 Version of the life cycle rather than jumping on the Distributed life cycle
-in the first place.We left learning the Android concepts late and should
-have done that before we started implementing.We were exploring concepts as
-we were coding ,but we should have had an entire picture of all important
-concepts of Android known before we started coding.This would have given us
-more options and time.Android developing environment was the essential
-component for this project.We should have explored the eclipse
-functionalities of Android before we started coding instead of doing it
-simultaneously.Debugging on Android is complex and we should have made
-ourselves familiar with that with more practice.
+in the first place.  We left learning the Android concepts late and should
+have done that before we started implementing.  We were exploring concepts
+as we were coding, but we should have had an entire picture of all
+important concepts of Android known before we started coding.  This would
+have given us more options and time.  Android developing environment was
+the essential component for this project.  We should have explored the
+eclipse functionalities of Android before we started coding instead of
+doing it simultaneously.  Debugging on Android is complex and we should
+have made ourselves familiar with that with more practice.
 
 We each worked on a major section of code, learning the techniques required
 and developing in pieces.  We left integrating the sections until late in
@@ -435,30 +433,63 @@ libraries.  The use of inbuilt networking libraries on Android as well as
 Java would have made our job simpler and would have saved us time given
 that we had to implement the project in ten weeks.
 
-We realized it very late in our implementation that even Simple Distributed
-Algorithms were complicated.We tried to implement Paxos as a consensus
+We realized it very late in our implementation that even simple distributed
+algorithms were complicated.  We tried to implement Paxos as a consensus
 algorithm without realizing the complexity and the amount of time it would
-take to implement it.``Fast Paxos'' (Lamport, 2005) describes the Paxos
-algorithm in 4 steps over three pages.  ``Paxos for System Builders''
-(Kirsh and Amir, 2008) gives complete pseudo code for the same algorithm
-and takes 10 pages.  The lesson learned here was determining early in your
-project whether it would be feasible and practical  to implement  complex
-concepts  within a given time frame or not.
+take to implement it.  ``Fast Paxos''\cite{lamport:fast} describes the
+Paxos algorithm in 4 steps over three pages.  ``Paxos for System
+Builders''\cite{kirsch:paxos} gives complete pseudo code for the same
+algorithm and takes 10 pages.  The lesson learned here was determining
+early in your project whether it would be feasible and practical to
+implement complex concepts within a given time frame or not.
 
 \section{Future Work}
 \label{future}
 
-\begin{itemize}
-	\item \textbf{Server Failure:} Backup servers were never implemented
-	\item \textbf{Consensus Algorithms:} Paxos seemed to be far more
-		complex than required for this project.  Other forms of voting and
-		data propagation could be investigated.
-	\item \textbf{Additional Platforms:} While Blackberry was never
-		developed due to lack of time, the modular nature of the code
-		should allow the differences to be abstracted away.
-\end{itemize}
+Due to time limitations, there were a number of planned tasks that were
+never completed.  In addition there were some avenues of investigation
+opened by the issues we encountered.
+
+While we did have a system that successfully passed balls around a game,
+more of the game aspects where never implemented.  In particular, some
+system of score tracking would be needed to have a true gaming experience.
+We also had some discussion of additional ``powerups'' that would alter the
+rules of the game various ways.  Now that the basic rule set is working,
+various changes could be experimented with to reflect the distributed
+nature of the game.
+
+Our original design included a set of servers that would duplicate state
+and be available as backups in case of connectivity failures.  Due to time
+constraints no portion of this design was implemented.  Various methods of
+replication could be implemented and the voting mechanism for server
+migration should be investigated.
+
+Not only did Paxos turn out to be more complex than we had time to
+implement, there were some indications that Paxos was designed to solve far
+more complex issues than we wanted to use it for.  Other forms of voting
+and data propagation should be investigated for ball passing, player
+dropping, and server failover.
+
+While the Blackberry client was never developed due to time constraints,
+the modular nature of the code should still allow it to be possible to
+implement the game on the Blackberry, albeit with more work than the
+android platform needs.
 
 \section{Conclusion}
+
+We have discussed the implementation and lessons learned while implementing
+a distributed game.  Despite the issues described herein, in the end we end
+have a functional system that did allow multiple computers to connect
+together and exchange balls.
+
+This project gave us several insights into the complexity of not only
+distributed systems but also engineering issues on large complex systems.
+With so much new skills to learn, we would have been much better served
+with implementing simple versions instead of heading straight to the
+complete project despite the time constraints.  In addition, although
+having multiple people allowed us to divide learning the new tasks, the
+lack of coordination early in the project made finishing far more
+complicated.
 
 \bibliographystyle{abbrv}
 \bibliography{report}
