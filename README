@@ -1,0 +1,212 @@
+This project is built using Eclipse.  The following classes should be run
+as Java programs to use our system:
+
+- bam.pong.server.Server
+    Begins a BAM! Pong server on port 1234
+
+- bam.pong.desktop.BamPong
+    Begins a BAM! Pong client.  By default it connects to localhost on port
+    1234.  Multiple clients can be run on the same computer simultaneously.
+
+If the Android SDK is installed, the project can be built as an Android
+project.  No additional configuration should be required, although the
+current program is somewhat unstable.  To connect to a server, enter a
+username in the top text box and the server address in the second.  The
+program will connect when the swirly "Connect" button can be pressed.
+After creating or joining a game, the back button on the phone can be used
+to get to the start and cancel game buttons.
+
+The LaTeX source of our report is in the report directory and a copy of our
+presentation materials is at report/Presentation.pdf
+
+-----------------
+
+Broadly speaking, the division of labor was as follows:
+
+- Max Bogue: Game Physics and MVC design
+- Brian Gernhardt: Networking
+- Aniket Sharma: Android
+
+Although those were the main sections each person worked on, we all
+provided debugging and assistance across the full code base.
+
+What follows is a complete list of the git commits created over the course
+of the project.  The full repository is online at
+https://github.com/maxbogue/BamPong
+
+When reading the following, keep in mind that each team member had varying
+experience with git and so our usage of the tool was very different.  Brian
+committed very often, but each change tended to be fairly small.  Max
+tended to create one commit per feature written, along with any bug fixes
+written along the way.  Aniket had the least experience and committed very
+large portions of code at once.  Also, if mulitple people collaborated on a
+task, the commit only reflects a single name depending on what computer the
+result was committed on.
+
+Brian Gernhardt (115):
+      Initial Template
+      Ignore generated files
+      Phase 0
+      Empty Eclipse Java Project
+      Add report LaTeX
+      Add basic Swing Display
+      Merge branch 'refs/heads/master' of git@github.com:maxbogue/BamPong.git
+      Fix thinko in comment
+      Add some fields and constructors to Ball
+      Use balls in the Display.
+      Merge branch 'android'
+      Ignore generated Android files
+      Add outline of client setup.
+      Add socket setup to client code.
+      Code Dump: Client networking
+      Client: Send incoming port number to server
+      Report: Update to phase 1
+      Report updates
+      Reduce warnings.
+      Re-dent and remove excess blank lines
+      Client -> PeerCommunication class
+      Added debug message
+      PeerCommunication: Read from socket incrementally
+      PeerCommunication: Use data input streams instead of buffers
+      Go back to ByteBuffers...
+      Peer Communication finally works!
+      ChannelHelper: Introduce putString
+      Server: Update to use buffers and channels correctly.
+      Remove warnings.
+      Server: Add message types to outgoing messages.
+      Server: re-merge code
+      Finish updating Server code
+      Get Server talking to something
+      Minor change to the report from long ago.
+      Server: close unknown sockets
+      Server: Add new_socket state
+      ServerCommunication: Always handle messages
+      ChannelHelper: Close sockets we can't read from.
+      Server: Add shutdown method.
+      Server: Use ChannelHelper.putBoolean in one more place
+      ChannelHelper: Rename putBool to sendBool
+      ServerComm:  Add default message handling
+      ChannelHelper: Add sendString
+      ServerComm: Handle CANCEL_GAME message
+      ServerComm: Add remaining message types.
+      Android: Add SDK and label for application
+      WIP: Paxos
+      Revert "WIP: Paxos"
+      Add simple ball passing message
+      Break peer ID dependancy loop
+      Continue tying together classes
+      BamException: take a message
+      Server: Send game information to client
+      Desktop: Clear out unneeded code
+      Client: Further tying
+      Client: Connect to peers when joining a game
+      Client: Handle sending ball
+      Server: Add main method to run server
+      Actually notify everyone of game start
+      Window for after we're connected to the server
+      Client: Intialize engine in constructor
+      BamPongView: Don't set visible in constructor
+      ConnectedFrame: Add code to join and start game
+      Desktop: Launch ConnectedFrame
+      Server: Add logging
+      Server: Actually bind to a specific port
+      Name threads
+      ConnectedFrame: Handle no games to join
+      ServerComm: Re-centralize sending messages
+      A game being cancelled is also asynchronous.
+      Removed unused imports
+      ServerComm:  Take more than one listener
+      Missed a thread to name
+      Server: Handle exceptions slightly better
+      ConnectedFrame: Exit on close
+      Server: Remove cancelled games
+      Server: Remove games that have no players left
+      Comment Constants
+      ServerComm: Server does respond to cancel came
+      ServerComm: Add missing break
+      Desktop: Disable Start & Join while in a game
+      Client: tell server when we want to start a game
+      PeerComm: Don't try to read from closed sockets
+      ServerComm: Read the IP into a byte array
+      ConnectedFrom: disable the right buttons
+      Server: Send start message to all clients
+      ServerComm: Protect against listeners deregistering
+      Add way to get size from engine
+      Actually add balls when we start a game
+      Engine: Actually send/drop balls
+      Client: Actually listen to the engine...
+      PeerComm: Exchange port info on connect
+      PeerComm: Remove old test main
+      Server: Protect against concurrent modification
+      PeerComm: Notify listeners of new peers
+      Client: Stop engine on game cancelled
+      Send ball postion and motion data between clients
+      ConnectedFrame: Handle create -> cancel
+      Handle dropped balls
+      Android: Add error dialogs
+      Add way to stop server and peer comm
+      Update Android for interface change
+      Android GUI: Check for null
+      Server: Notice closed sockets faster
+      Merge branch 'refs/heads/master' of git@github.com:maxbogue/BamPong.git
+      Desktop: Add dialogs for server location and nickname
+      Desktop: Minor GUI tweak and use this morning's IP.
+      Desktop: Don't allow null server address
+      Kill new dead games
+      Handle dropping players better.
+      Desktop: default to localhost
+      Report: Add presentation PDF
+      Report: Add points from presentation
+      Updating report from Google Doc
+      Report 'finished'
+
+Max Bogue (34):
+      Added very basic GameEngine class, a simple event framework, and an empty Ball class.
+      Added anti-aliasing for the pretties.
+      Reorganized a lot of code.  Game engine now handles linear physics, game field now registers for update events, and there's a main BamPong class/frame.
+      Added serialVersionUID for the BamPong frame, as well as a third ball to the game.
+      Converted ball position/velocity to doubles and made them independant of the update rate.  Also added many comments.
+      Whitespace tweaks and ball size change.
+      Very basic sketch of ball transmitting code.
+      Refactored things to use EngineListener interface.  Yay abstraction
+      Started refactoring Client code; added Peer class.
+      Few files missing from the last commit.
+      First crack at server.
+      Accidentally left ID in a Client constructor.
+      Fix indentation.  For reals.
+      Filled in more of the server code.
+      Huge reorganization of code.  Engine updated for paddle, Android code significantly moved around.
+      Fixed some little things in Server.
+      Bug fixes to Engine + android code.
+      Fixed ball position offset on desktop and added keyboard controls.
+      Changed the constructor to not take a Peer object.
+      A new controller class Client for the client side, along with BamException for failure information passing and ViewListener because interfaces are the best.
+      Reworked EngineListener, Client, and desktop.BamPong interactions slightly.
+      Engine: add stop() method.
+      Removed unused imports.
+      Engine: improved collision detection and handling significantly.
+      Engine: improved paddle side collision further, made engine not send ball away until it leaves the top of the screen completely.     Misc: tweaked whitespace.
+      Engine + Ball: tweaked so that dx and dy are stored in % of screen per second.
+      Pass full ball information whenever balls are moved, including diameter.  Server now uses Random to generate dynamic balls.
+      Merge branch 'master' of github.com:maxbogue/BamPong
+      PeerComm: Slight tweak to maybe fix ConcurrentModificationException.
+      Remove old main from BamPongView.
+      Whitespace tweaks for Android classes..
+      Add score tracking on the server side.
+      Server + Game: add tracking of whether a game has begun, and only return unstarted games for LIST_GAMES.
+      PeerComm: Correct invalid cast usage.
+
+aniket (12):
+      The touch screen stuff is not working,and d code does not support     multiple balls.
+      Touchscreen working
+      GUI working
+      GUI ANDROID
+      GUI ANDROID
+      .............
+      Merge branch 'refs/heads/master' of     git@github.com:maxbogue/BamPong.git
+      Merge branch 'refs/heads/master' of git@github.com:maxbogue/BamPong.git
+      Android Client startup
+      Merge branch 'refs/heads/master' of git@github.com:maxbogue/BamPong.git
+      Android is broken........
+      Merge branch 'refs/heads/master' of     git@github.com:maxbogue/BamPong.git
+
